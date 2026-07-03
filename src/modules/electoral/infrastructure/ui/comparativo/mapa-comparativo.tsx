@@ -4,7 +4,12 @@ import type { ComparativoTerritorialResultado } from '@/modules/electoral/domain
 import { useMunicipios } from '@/modules/geo/application/hooks';
 import { useFiltrosGlobales } from '@/shared/application/stores/filtros-globales.store';
 import { useGeoJSON } from '@/shared/application/hooks/use-geojson';
-import { aDivipolaDepto, normalizarNombre } from '@/shared/domain/divipola';
+import {
+  aDivipolaDepto,
+  claveMunicipioDivipola,
+  esDepartamentoExteriorBd,
+  normalizarNombre,
+} from '@/shared/domain/divipola';
 import { Skeleton } from '@/shared/ui/components/skeleton';
 import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
@@ -53,6 +58,7 @@ function MapaDepartamentalComparativo({
   const coloresPorCodigo = useMemo(() => {
     const m = new Map<string, string>();
     for (const t of resultado.territorios) {
+      if (esDepartamentoExteriorBd(t.codigoDepartamento)) continue;
       const divipola = aDivipolaDepto(t.codigoDepartamento);
       if (!divipola) continue;
       const intensidad = maxDif > 0 ? t.diferenciaPct / maxDif : 1;
@@ -64,6 +70,7 @@ function MapaDepartamentalComparativo({
   const etiquetasPorCodigo = useMemo(() => {
     const m = new Map<string, string>();
     for (const t of resultado.territorios) {
+      if (esDepartamentoExteriorBd(t.codigoDepartamento)) continue;
       const divipola = aDivipolaDepto(t.codigoDepartamento);
       if (!divipola) continue;
       const ganador =
@@ -84,6 +91,7 @@ function MapaDepartamentalComparativo({
     // Pasamos los votos del ganador para que el tooltip de MapaBaseInner muestre algo útil.
     const m = new Map<string, number>();
     for (const t of resultado.territorios) {
+      if (esDepartamentoExteriorBd(t.codigoDepartamento)) continue;
       const divipola = aDivipolaDepto(t.codigoDepartamento);
       if (!divipola) continue;
       m.set(divipola, t.totalA + t.totalB);
@@ -109,7 +117,9 @@ function MapaDepartamentalComparativo({
           // Buscamos el código de la BD correspondiente recorriendo la respuesta
           // (más fiable que el reverso del helper, que puede caer al fallback).
           const t = resultado.territorios.find(
-            (t) => aDivipolaDepto(t.codigoDepartamento) === codigoDivipola,
+            (t) =>
+              !esDepartamentoExteriorBd(t.codigoDepartamento) &&
+              aDivipolaDepto(t.codigoDepartamento) === codigoDivipola,
           );
           const codigoBd = t?.codigoDepartamento ?? null;
           setDepartamento(codigoBd === codigoSeleccionadoBd ? null : codigoBd);
@@ -172,7 +182,7 @@ function MapaMunicipalComparativo({
     if (!geoIndex || !codigoDepartamentoDivipola) return m;
     for (const t of resultado.territorios) {
       const ccnct = geoIndex.porNombre.get(
-        `${codigoDepartamentoDivipola}|${normalizarNombre(t.nombre)}`,
+        claveMunicipioDivipola(codigoDepartamentoDivipola, t.nombre),
       );
       if (!ccnct) continue;
       const intensidad = maxDif > 0 ? t.diferenciaPct / maxDif : 1;
@@ -186,7 +196,7 @@ function MapaMunicipalComparativo({
     if (!geoIndex || !codigoDepartamentoDivipola) return m;
     for (const t of resultado.territorios) {
       const ccnct = geoIndex.porNombre.get(
-        `${codigoDepartamentoDivipola}|${normalizarNombre(t.nombre)}`,
+        claveMunicipioDivipola(codigoDepartamentoDivipola, t.nombre),
       );
       if (!ccnct) continue;
       m.set(ccnct, t.totalA + t.totalB);
@@ -199,7 +209,7 @@ function MapaMunicipalComparativo({
     if (!geoIndex || !codigoDepartamentoDivipola) return m;
     for (const t of resultado.territorios) {
       const ccnct = geoIndex.porNombre.get(
-        `${codigoDepartamentoDivipola}|${normalizarNombre(t.nombre)}`,
+        claveMunicipioDivipola(codigoDepartamentoDivipola, t.nombre),
       );
       if (!ccnct) continue;
       const ganador =
@@ -230,7 +240,7 @@ function MapaMunicipalComparativo({
     if (!t) return null;
     return (
       geoIndex.porNombre.get(
-        `${codigoDepartamentoDivipola}|${normalizarNombre(t.nombre)}`,
+        claveMunicipioDivipola(codigoDepartamentoDivipola, t.nombre),
       ) ?? null
     );
   }, [codigoSeleccionadoBd, geoIndex, codigoDepartamentoDivipola, resultado.territorios]);
@@ -264,9 +274,11 @@ function MapaMunicipalComparativo({
         etiquetasPorCodigo={etiquetasPorCodigo}
         onSeleccion={(ccnctDivipola) => {
           const nombreNormalizado = geoIndex.porCcnct.get(ccnctDivipola);
-          if (!nombreNormalizado) return;
+          if (!nombreNormalizado || !codigoDepartamentoDivipola) return;
+          const claveGeo = `${codigoDepartamentoDivipola}|${nombreNormalizado}`;
           const t = resultado.territorios.find(
-            (x) => normalizarNombre(x.nombre) === nombreNormalizado,
+            (x) =>
+              claveMunicipioDivipola(codigoDepartamentoDivipola, x.nombre) === claveGeo,
           );
           if (!t || !t.codigoMunicipio) return;
           setMunicipio(
@@ -337,7 +349,7 @@ function MapaPuestoComparativo({
     if (!muni) return null;
     return (
       geoIndex.porNombre.get(
-        `${codigoDepartamentoDivipola}|${normalizarNombre(muni.nombre)}`,
+        claveMunicipioDivipola(codigoDepartamentoDivipola, muni.nombre),
       ) ?? null
     );
   }, [geoIndex, codigoDepartamentoDivipola, codigoMunicipioBd, municipios]);
@@ -426,9 +438,11 @@ function MapaPuestoComparativo({
             return;
           }
           const nombreNormalizado = geoIndex.porCcnct.get(ccnctDivipola);
-          if (!nombreNormalizado) return;
+          if (!nombreNormalizado || !codigoDepartamentoDivipola) return;
+          const claveGeo = `${codigoDepartamentoDivipola}|${nombreNormalizado}`;
           const muni = municipios.find(
-            (m) => normalizarNombre(m.nombre) === nombreNormalizado,
+            (m) =>
+              claveMunicipioDivipola(codigoDepartamentoDivipola, m.nombre) === claveGeo,
           );
           if (!muni) return;
           setMunicipio(muni.codigo);

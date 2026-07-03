@@ -47,25 +47,44 @@ export interface MapaBaseInnerProps {
    * porcentaje o moneda). Si se omite se usa Intl.NumberFormat es-CO.
    */
   formatearValor?: (valor: number) => string;
+  /**
+   * Estrategia de coloreo del gradiente numérico (sólo aplica cuando NO se
+   * pasa `coloresPorCodigo`):
+   *  - 'lineal' (por defecto): t = valor / max. Fiel a la magnitud, pero con
+   *    datos muy sesgados (p. ej. votos) casi todo cae en el tono más pálido.
+   *  - 'percentil': t = posición del valor en el ranking. Reparte los tonos
+   *    por igual para que los territorios pequeños también se distingan.
+   */
+  escalaColor?: 'lineal' | 'percentil';
 }
 
 const formatter = new Intl.NumberFormat('es-CO');
 
-function colorScale(valor: number, max: number, isDark: boolean): string {
-  if (max === 0) return isDark ? 'rgb(56, 68, 102)' : 'rgb(226, 230, 240)';
-  const t = Math.max(0, Math.min(1, valor / max));
+/**
+ * Color del gradiente del choropleth para un `t` ∈ [0,1] ya normalizado.
+ * Los extremos coinciden con la barra de `LeyendaCalor`:
+ *   light: t0 rgb(226,230,240) → t1 rgb(49,63,105) (navy brand)
+ *   dark:  t0 rgb(56,68,102)  → t1 rgb(129,183,230) (sky brand)
+ */
+function colorParaT(t: number, isDark: boolean): string {
+  const tt = Math.max(0, Math.min(1, t));
   if (isDark) {
     // Surface oscuro → sky brand #81b7e6 (gradiente sobre navy profundo)
-    const r = Math.round(56 + t * 73);
-    const g = Math.round(68 + t * 115);
-    const b = Math.round(102 + t * 128);
+    const r = Math.round(56 + tt * 73);
+    const g = Math.round(68 + tt * 115);
+    const b = Math.round(102 + tt * 128);
     return `rgb(${r}, ${g}, ${b})`;
   }
   // Light gray-blue → navy brand #313f69 (gradiente frío de la marca)
-  const r = Math.round(226 - t * 177);
-  const g = Math.round(230 - t * 167);
-  const b = Math.round(240 - t * 135);
+  const r = Math.round(226 - tt * 177);
+  const g = Math.round(230 - tt * 167);
+  const b = Math.round(240 - tt * 135);
   return `rgb(${r}, ${g}, ${b})`;
+}
+
+function colorScale(valor: number, max: number, isDark: boolean): string {
+  if (max === 0) return isDark ? 'rgb(56, 68, 102)' : 'rgb(226, 230, 240)';
+  return colorParaT(valor / max, isDark);
 }
 
 /**
@@ -101,6 +120,7 @@ export function MapaBaseInner({
   etiquetasPorCodigo,
   detallesPorCodigo,
   formatearValor,
+  escalaColor = 'lineal',
 }: MapaBaseInnerProps) {
   // GeoJSON viene del hook compartido (cache module-level): al cambiar de
   // vista no hay re-fetch ni re-parse del archivo de ~80–600 KB.
@@ -120,12 +140,25 @@ export function MapaBaseInner({
     [valoresPorCodigo],
   );
 
+  // Modo 'percentil': valor → t según su posición en el ranking de valores
+  // distintos. Reparte los tonos del gradiente por igual entre territorios,
+  // evitando que la fuerte asimetría de los votos (Bogotá/Antioquia/Valle
+  // dominan) deje casi todo el mapa en el tono base. Sólo se computa en este
+  // modo; en 'lineal' es null y se usa `colorScale(valor, maxValor)`.
+  const tPorPercentil = useMemo(() => {
+    if (escalaColor !== 'percentil') return null;
+    const vals = Array.from(new Set(valoresPorCodigo.values())).sort((a, b) => a - b);
+    const n = vals.length;
+    return new Map(vals.map((v, i) => [v, n > 1 ? i / (n - 1) : 1] as const));
+  }, [escalaColor, valoresPorCodigo]);
+
   // Memoizamos style/onEachFeature: aunque el GeoJSON se remonta vía `key`,
   // las funciones estables evitan trabajo extra dentro del ciclo de Leaflet
   // y permiten que React Compiler reconozca su pureza.
   const styleFeature = useCallback(
     (feature?: Feature<Geometry, PropsFeature>): PathOptions => {
       const codigo = String(feature?.properties?.[propiedadCodigo] ?? '');
+      const tieneDato = valoresPorCodigo.has(codigo);
       const valor = valoresPorCodigo.get(codigo) ?? 0;
       const seleccionado = codigo === codigoSeleccionado;
       const colorOverride = coloresPorCodigo?.get(codigo);
@@ -134,10 +167,22 @@ export function MapaBaseInner({
       // #e85f54 dark) — alto contraste sobre la paleta fría del choropleth y
       // accesible en ambos temas.
       const accentBorder = isDark ? 'rgb(232, 95, 84)' : 'rgb(179, 33, 24)';
+      // Relleno: 1) override categórico; 2) modo categórico sin override → base;
+      // 3) gradiente por percentil (si activo y hay dato); 4) gradiente lineal.
+      let fillColor: string;
+      if (colorOverride) {
+        fillColor = colorOverride;
+      } else if (coloresPorCodigo) {
+        fillColor = fillDefault;
+      } else if (tPorPercentil) {
+        fillColor = tieneDato
+          ? colorParaT(tPorPercentil.get(valor) ?? 0, isDark)
+          : fillDefault;
+      } else {
+        fillColor = colorScale(valor, maxValor, isDark);
+      }
       return {
-        fillColor:
-          colorOverride ??
-          (coloresPorCodigo ? fillDefault : colorScale(valor, maxValor, isDark)),
+        fillColor,
         weight: seleccionado ? 4 : 0.6,
         color: seleccionado
           ? accentBorder
@@ -154,6 +199,7 @@ export function MapaBaseInner({
       coloresPorCodigo,
       isDark,
       maxValor,
+      tPorPercentil,
     ],
   );
 
@@ -211,9 +257,11 @@ export function MapaBaseInner({
     );
   }
 
-  // Key fuerza el remount del GeoJSON cuando cambia filtro, selección, tema o colores.
+  // Key fuerza el remount del GeoJSON cuando cambia filtro, selección, tema o
+  // colores. Incluimos `valoresPorCodigo.size` porque en modo percentil los
+  // tonos dependen de toda la distribución, no sólo del máximo.
   const coloresHash = coloresPorCodigo ? coloresPorCodigo.size : 0;
-  const featuresKey = `${codigoSeleccionado ?? 'none'}-${features.length}-${maxValor}-${theme}-${coloresHash}`;
+  const featuresKey = `${codigoSeleccionado ?? 'none'}-${features.length}-${valoresPorCodigo.size}-${maxValor}-${theme}-${coloresHash}`;
 
   return (
     <MapContainer
