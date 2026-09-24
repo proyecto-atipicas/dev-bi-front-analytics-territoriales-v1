@@ -32,7 +32,7 @@ export function PanelSeleccionEstadistico() {
   return (
     <Card>
       <CardBody className="space-y-4">
-        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-foreground-muted">
           <Users size={12} />
           Selección de corporaciones y candidatos
         </div>
@@ -75,7 +75,7 @@ function LadoCorporacion({
 }: LadoCorporacionProps) {
   return (
     <div className="rounded-xl border border-border bg-surface-elevated/40 p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <div className="text-[11px] font-medium text-foreground-muted">
         {etiqueta}
       </div>
       <div className="mt-3">
@@ -153,7 +153,7 @@ function ListaCandidatos({ corp }: { corp: string }) {
 
   return (
     <div className="mt-4 space-y-2">
-      <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <div className="flex items-center justify-between text-xs font-medium text-foreground-muted">
         <span>Candidatos</span>
         <span className="text-foreground-subtle">
           {seleccionDeEstaCorp} seleccionado{seleccionDeEstaCorp === 1 ? '' : 's'}

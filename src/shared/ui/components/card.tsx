@@ -14,8 +14,8 @@ export function Card({ className, children, flat = false, ...rest }: CardProps) 
   return (
     <div
       className={cn(
-        'rounded-xl border border-border bg-surface',
-        flat ? 'shadow-none' : 'shadow-soft',
+        'rounded-xl border border-border/80 bg-surface',
+        flat ? 'shadow-none' : 'shadow-panel',
         className,
       )}
       {...rest}
@@ -46,24 +46,26 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-start justify-between gap-3 border-b border-border',
-        dense ? 'px-4 py-2.5' : 'px-5 py-3.5',
+        'flex flex-wrap items-start justify-between gap-3 border-b border-border/70',
+        dense ? 'px-4 py-3' : 'px-5 py-4',
         className,
       )}
     >
       <div className="flex min-w-0 flex-1 items-start gap-3">
         {Icon && (
-          <div
-            className={cn(
-              'mt-0.5 flex shrink-0 items-center justify-center rounded-lg bg-brand-muted text-brand',
-              dense ? 'h-7 w-7' : 'h-8 w-8',
-            )}
-          >
-            <Icon size={dense ? 14 : 16} />
-          </div>
+          <Icon
+            size={dense ? 16 : 18}
+            className="mt-[3px] shrink-0 text-brand"
+            aria-hidden
+          />
         )}
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-semibold tracking-tight text-foreground">
+          <h3
+            className={cn(
+              'truncate font-semibold text-foreground',
+              dense ? 'text-sm' : 'text-[15px]',
+            )}
+          >
             {title}
           </h3>
           {description && (

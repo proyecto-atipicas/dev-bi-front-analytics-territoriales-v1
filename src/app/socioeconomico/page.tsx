@@ -302,11 +302,15 @@ export default function SocioeconomicoPage() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      {/* Barra de fuentes — botones visuales centrados. */}
+      {/* Barra de fuentes — control segmentado, mismo lenguaje que las pestañas. */}
       {loadingFuentes ? (
-        <Skeleton className="h-11 w-full" />
+        <Skeleton className="h-11 w-80 rounded-xl" />
       ) : (
-        <div className="flex flex-wrap items-stretch justify-center gap-1.5 sm:gap-2.5">
+        <div
+          role="group"
+          aria-label="Fuente de información"
+          className="flex w-fit max-w-full flex-wrap items-stretch gap-1 rounded-xl border border-border bg-background p-1"
+        >
           {opcionesFuente.map((opt) => {
             const active = opt.value === fuentePublicacion;
             const Icon = opt.icon;
@@ -323,25 +327,15 @@ export default function SocioeconomicoPage() {
                 }}
                 aria-pressed={active}
                 className={cn(
-                  'group relative inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold shadow-soft transition-all duration-150 sm:h-10 sm:gap-2 sm:px-4 sm:text-sm',
+                  'group relative inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-sm transition-colors',
                   active
-                    ? 'border-brand bg-brand text-brand-foreground shadow-md'
-                    : 'border-border bg-surface text-foreground-muted hover:border-brand/40 hover:bg-surface-elevated hover:text-foreground',
+                    ? 'bg-surface font-semibold text-foreground shadow-soft ring-1 ring-border/80'
+                    : 'font-medium text-foreground-muted hover:text-foreground',
                 )}
               >
                 <Icon
-                  size={14}
-                  className={cn(
-                    'shrink-0 transition-colors sm:hidden',
-                    active ? 'text-brand-foreground' : 'text-brand',
-                  )}
-                />
-                <Icon
-                  size={16}
-                  className={cn(
-                    'hidden shrink-0 transition-colors sm:block',
-                    active ? 'text-brand-foreground' : 'text-brand',
-                  )}
+                  size={15}
+                  className={cn('shrink-0', active ? 'text-brand' : 'text-foreground-subtle')}
                 />
                 <span className="whitespace-nowrap tracking-tight">
                   {opt.label}

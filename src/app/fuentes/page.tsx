@@ -78,7 +78,7 @@ export default function FuentesPage() {
           }
           icon={Files}
           action={
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-2.5 py-1 text-xs font-medium text-foreground-muted">
               <FileText size={12} />
               Trazabilidad
             </span>

@@ -44,10 +44,8 @@ export function LeyendaCalor({ valores, etiqueta = 'Votos' }: LeyendaCalorProps)
     : 'linear-gradient(to right, rgb(226,230,240), rgb(49,63,105))';
 
   return (
-    <div className="absolute bottom-3 left-3 z-[400] flex items-center gap-2 rounded-lg border border-border bg-surface/95 px-2.5 py-1.5 text-[11px] shadow-soft backdrop-blur">
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
-        {etiqueta}
-      </span>
+    <div className="absolute bottom-3 left-3 z-[400] flex items-center gap-2 rounded-lg border border-border bg-surface/95 px-3 py-2 text-[11px] shadow-panel backdrop-blur">
+      <span className="text-xs font-semibold text-foreground">{etiqueta}</span>
       <span className="num-tabular text-foreground-muted">{fmtCompacto.format(min)}</span>
       <span
         className="h-2 w-24 rounded-full border border-border sm:w-32"

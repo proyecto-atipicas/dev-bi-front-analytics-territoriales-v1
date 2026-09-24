@@ -4,14 +4,17 @@ import { BarraFiltrosContextual } from '@/shared/ui/filters/barra-filtros-contex
 import { Header } from '@/shared/ui/layout/header';
 import { Sidebar } from '@/shared/ui/layout/sidebar';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Archivo } from 'next/font/google';
 import { ReactNode } from 'react';
 import './globals.css';
 
-const inter = Inter({
+// Archivo: grotesca institucional con eje de ancho. El cuerpo va en ancho
+// normal y los titulares/cifras en su corte expandido (`.font-display`).
+const archivo = Archivo({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
+  axes: ['wdth'],
 });
 
 export const metadata: Metadata = {
@@ -21,16 +24,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={inter.variable} suppressHydrationWarning>
+    <html lang="es" className={archivo.variable} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
         <ThemeProvider>
           <QueryProvider>
             <div className="flex min-h-screen">
               <Sidebar />
               <div className="flex min-w-0 flex-1 flex-col">
-                <Header />
-                <BarraFiltrosContextual />
-                <main className="flex-1 overflow-x-hidden px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
+                <Header filtros={<BarraFiltrosContextual />} />
+                <main className="flex-1 overflow-x-hidden px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
                   <div className="mx-auto w-full max-w-[1600px]">{children}</div>
                 </main>
               </div>

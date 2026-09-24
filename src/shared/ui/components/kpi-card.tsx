@@ -43,16 +43,16 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-xl border border-border bg-surface p-4 shadow-soft transition-all duration-200 hover:border-border-strong hover:shadow-elevated sm:p-5',
+        'relative overflow-hidden rounded-xl border border-border/80 bg-surface p-4 shadow-panel sm:p-5',
         className,
       )}
     >
       <div className="flex items-start justify-between gap-2 sm:gap-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
+          <p className="truncate text-xs font-medium text-foreground-muted">
             {label}
           </p>
-          <p className="mt-2 truncate text-xl font-semibold tracking-tight text-foreground sm:mt-2.5 sm:text-2xl">
+          <p className="font-display mt-2 truncate text-2xl font-bold tabular-nums text-foreground sm:text-[28px] sm:leading-9">
             {value}
           </p>
           {hint && (
@@ -62,12 +62,11 @@ export function KpiCard({
         {Icon && (
           <div
             className={cn(
-              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 sm:h-9 sm:w-9',
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
               TONE_STYLES[tone],
             )}
           >
-            <Icon size={16} className="sm:hidden" />
-            <Icon size={18} className="hidden sm:block" />
+            <Icon size={16} />
           </div>
         )}
       </div>

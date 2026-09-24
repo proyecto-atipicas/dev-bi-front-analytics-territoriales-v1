@@ -115,7 +115,7 @@ function AmbitoTerritorial() {
 
   return (
     <div className="rounded-xl border border-border bg-surface-elevated/40 p-4">
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-foreground-muted">
         <MapPin size={12} />
         Ámbito territorial
       </div>
@@ -239,7 +239,7 @@ function TarjetaSelector({
 
   return (
     <div className={cn('rounded-xl border bg-surface p-4', color.border, color.bg)}>
-      <div className={cn('text-[11px] font-semibold uppercase tracking-wider', color.text)}>
+      <div className={cn('text-[11px] font-medium', color.text)}>
         {etiqueta}
       </div>
       <div className="mt-3 space-y-3">

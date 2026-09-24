@@ -151,7 +151,7 @@ export function PanelFiltrosPoblacional({
     <Card>
       <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
         <SlidersHorizontal size={14} className="text-brand" />
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-foreground">
+        <p className="text-[11px] font-medium text-foreground">
           Panel de filtros
         </p>
       </div>
@@ -219,7 +219,7 @@ export function PanelFiltrosPoblacional({
                   criteriosAbierto && 'rotate-180',
                 )}
               />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+              <span className="text-xs font-medium text-foreground-muted">
                 Criterios de la referencia
               </span>
               {referencia && totalCriterios > 0 && (
@@ -281,7 +281,7 @@ export function PanelFiltrosPoblacional({
                           ? limpiarCriterios
                           : seleccionarTodos
                       }
-                      className="font-semibold uppercase tracking-wider text-brand transition-colors hover:text-brand/80"
+                      className="font-medium text-brand transition-colors hover:text-brand/80"
                     >
                       {criterios.length === totalCriterios
                         ? 'Deseleccionar todos'

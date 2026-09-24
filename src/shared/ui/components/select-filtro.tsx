@@ -34,34 +34,53 @@ export function SelectFiltro({
     onChange(e.target.value === '' ? null : e.target.value);
   };
 
+  const activo = value !== null && value !== '';
+  const bloqueado = disabled || loading;
+
   return (
-    <label className={cn('flex flex-col gap-1', className)}>
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+    <label
+      className={cn(
+        'group relative flex h-12 min-w-0 flex-col justify-center rounded-lg border bg-surface pl-3 pr-8 transition-colors',
+        'focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15',
+        activo
+          ? 'border-brand/40 bg-brand-muted/40'
+          : 'border-border hover:border-border-strong',
+        bloqueado && 'cursor-not-allowed opacity-60 hover:border-border',
+        className,
+      )}
+    >
+      <span
+        className={cn(
+          'truncate text-[11px] font-medium leading-none',
+          activo ? 'text-brand' : 'text-foreground-muted',
+        )}
+      >
         {label}
       </span>
-      <div className="relative">
-        <select
-          value={value ?? ''}
-          onChange={handleChange}
-          disabled={disabled || loading}
-          className={cn(
-            'h-10 w-full appearance-none truncate rounded-lg border border-border bg-surface pl-3 pr-8 text-sm text-foreground shadow-soft transition-colors',
-            'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20',
-            'disabled:cursor-not-allowed disabled:opacity-60',
-          )}
-        >
-          <option value="">{loading ? 'Cargando…' : placeholder}</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          size={14}
-          className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-foreground-subtle"
-        />
-      </div>
+      <select
+        value={value ?? ''}
+        onChange={handleChange}
+        disabled={bloqueado}
+        className={cn(
+          'mt-1 w-full min-w-0 cursor-pointer appearance-none truncate bg-transparent text-sm leading-tight text-foreground focus:outline-none',
+          activo ? 'font-semibold' : 'font-medium',
+          'disabled:cursor-not-allowed',
+        )}
+      >
+        <option value="">{loading ? 'Cargando…' : placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        size={15}
+        className={cn(
+          'pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 transition-colors',
+          activo ? 'text-brand' : 'text-foreground-subtle group-hover:text-foreground-muted',
+        )}
+      />
     </label>
   );
 }

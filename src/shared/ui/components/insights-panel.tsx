@@ -48,9 +48,15 @@ export interface Insight {
   description: string;
 }
 
-export function InsightsPanel({ insights }: { insights: Insight[] }) {
+export function InsightsPanel({
+  insights,
+  className,
+}: {
+  insights: Insight[];
+  className?: string;
+}) {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader title="Insights y alertas" icon={Sparkles} />
       <CardBody className="space-y-3">
         {insights.length === 0 ? (
@@ -64,7 +70,7 @@ export function InsightsPanel({ insights }: { insights: Insight[] }) {
             return (
               <div
                 key={i.id}
-                className="flex items-start gap-3 rounded-lg border border-border bg-background/40 p-3 transition-colors hover:bg-surface-elevated"
+                className="flex items-start gap-3 rounded-lg border border-border/80 bg-background/50 p-3"
               >
                 <Icon
                   size={18}
@@ -77,7 +83,7 @@ export function InsightsPanel({ insights }: { insights: Insight[] }) {
                     </h4>
                     <span
                       className={cn(
-                        'rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+                        'rounded-full px-2 py-0.5 text-[11px] font-medium',
                         config.chipClass,
                       )}
                     >

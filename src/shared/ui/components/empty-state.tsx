@@ -6,7 +6,7 @@ export type EmptyStateTone = 'neutral' | 'danger' | 'info' | 'warning';
 
 const TONE_CLASSES: Record<EmptyStateTone, { wrap: string; icon: string }> = {
   neutral: {
-    wrap: 'border-dashed border-border bg-surface-sunken/60 text-foreground-muted',
+    wrap: 'border-dashed border-border-strong/70 bg-background/60 text-foreground-muted',
     icon: 'text-foreground-subtle',
   },
   danger: {

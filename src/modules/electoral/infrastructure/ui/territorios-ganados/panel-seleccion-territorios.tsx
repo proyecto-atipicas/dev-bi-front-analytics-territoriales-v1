@@ -54,7 +54,7 @@ export function PanelSeleccionTerritorios() {
       <CardBody>
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
           <div className="flex shrink-0 flex-col gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <span className="text-xs font-medium text-foreground-muted">
               Tipo de análisis
             </span>
             <div className="inline-flex w-fit rounded-lg border border-border bg-surface-elevated p-0.5">

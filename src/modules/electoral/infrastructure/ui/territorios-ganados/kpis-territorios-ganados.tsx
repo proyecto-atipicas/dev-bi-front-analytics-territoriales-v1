@@ -86,7 +86,7 @@ function KpiCard({
           >
             <Icon size={14} />
           </div>
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+          <div className="text-xs font-medium text-foreground-muted">
             {etiqueta}
           </div>
         </div>

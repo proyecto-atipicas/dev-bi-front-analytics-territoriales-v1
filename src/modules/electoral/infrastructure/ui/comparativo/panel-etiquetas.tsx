@@ -119,7 +119,7 @@ function BloqueResumen({
         color ? cn(color.border, color.bg) : 'border-border',
       )}
     >
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-foreground-muted">
         {icono}
         {titulo}
       </div>
@@ -177,7 +177,7 @@ function ListaMargenes({
 }) {
   return (
     <div className="space-y-1.5">
-      <div className={cn('text-[10px] font-semibold uppercase tracking-wider', color.text)}>
+      <div className={cn('text-xs font-medium', color.text)}>
         {titulo}
       </div>
       <ul className="space-y-1">

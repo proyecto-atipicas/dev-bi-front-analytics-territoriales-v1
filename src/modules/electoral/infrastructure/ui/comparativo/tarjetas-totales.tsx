@@ -63,7 +63,7 @@ function TarjetaItem({
     <Card className={cn('border-2', color.border)}>
       <CardBody className="space-y-4">
         <div>
-          <div className={cn('text-[11px] font-semibold uppercase tracking-wider', color.text)}>
+          <div className={cn('text-[11px] font-medium', color.text)}>
             {rotulo}
           </div>
           <div className="mt-1 text-base font-semibold text-foreground">
@@ -109,7 +109,7 @@ function Kpi({
 }) {
   return (
     <div className="rounded-lg border border-border bg-surface-elevated/50 p-3">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <div className="text-xs font-medium text-foreground-muted">
         {etiqueta}
       </div>
       <div
