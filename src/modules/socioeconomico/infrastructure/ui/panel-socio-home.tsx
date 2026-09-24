@@ -11,6 +11,7 @@ import { IndicadorPorDepartamento } from '../../domain/entities';
 import { useFiltrosGlobales } from '@/shared/application/stores/filtros-globales.store';
 import { EmptyState } from '@/shared/ui/components/empty-state';
 import { Skeleton } from '@/shared/ui/components/skeleton';
+import { SelectFiltro } from '@/shared/ui/components/select-filtro';
 import { cn } from '@/shared/ui/utils/cn';
 import { formatearValor } from '@/shared/ui/utils/formatear-valor';
 import {
@@ -280,7 +281,7 @@ function ResumenNacional({
       {/* Tarjeta promedio + top 1 */}
       <div className="lg:col-span-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
         <div className="rounded-xl border border-border bg-surface p-4 shadow-soft">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+          <p className="text-xs font-medium text-foreground-muted">
             Promedio nacional
           </p>
           <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
@@ -293,7 +294,7 @@ function ResumenNacional({
 
         {ranking && (
           <div className="rounded-xl border border-border bg-surface p-4 shadow-soft">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <p className="text-xs font-medium text-foreground-muted">
               Departamento crítico
             </p>
             <p className="mt-1 truncate text-lg font-semibold text-foreground">
@@ -353,7 +354,7 @@ function ResumenNacional({
 
         {/* Distribución por nivel de riesgo */}
         <div className="mt-4 border-t border-border pt-3">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+          <p className="mb-2 text-xs font-medium text-foreground-muted">
             Distribución por nivel de riesgo
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -409,7 +410,7 @@ function DetalleDepartamento({
     <div className="space-y-3">
       <header className="flex items-center justify-between rounded-xl border border-brand/30 bg-brand-muted/40 px-4 py-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-brand">
+          <p className="text-xs font-medium text-brand">
             Detalle por departamento
           </p>
           <h4 className="truncate text-base font-semibold text-foreground">
@@ -448,7 +449,7 @@ function DetalleDepartamento({
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-4 shadow-soft">
-        <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+        <p className="mb-3 text-xs font-medium text-foreground-muted">
           Comparativo con referentes nacionales
         </p>
         <BarrasComparativo
@@ -542,14 +543,14 @@ function KpiBlock({
 }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-3 shadow-soft">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <p className="text-xs font-medium text-foreground-muted">
         {label}
       </p>
       <p
         className={cn(
           'mt-1 text-xl font-semibold tracking-tight',
-          tone === 'danger' && 'text-danger',
-          tone === 'success' && 'text-success',
+          tone === 'danger' && 'text-danger-foreground',
+          tone === 'success' && 'text-success-foreground',
           tone === 'neutral' && 'text-foreground',
         )}
       >
@@ -570,7 +571,6 @@ function Selector({
   loading,
   disabled,
   placeholder = 'Seleccione…',
-  icon: Icon,
 }: {
   label: string;
   value: string | null;
@@ -579,43 +579,19 @@ function Selector({
   loading?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  /** Conservado por compatibilidad; el control ya no muestra icono. */
   icon?: typeof MapIcon;
 }) {
   return (
-    <label className="flex flex-1 flex-col gap-1">
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
-        {label}
-      </span>
-      <div className="relative">
-        {Icon && (
-          <Icon
-            size={14}
-            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-subtle"
-          />
-        )}
-        <select
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled || loading}
-          className={cn(
-            'h-10 w-full appearance-none truncate rounded-lg border border-border bg-surface pr-8 text-sm text-foreground shadow-soft transition-colors',
-            Icon ? 'pl-8' : 'pl-3',
-            'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20',
-            'disabled:cursor-not-allowed disabled:opacity-60',
-          )}
-        >
-          <option value="">{loading ? 'Cargando…' : placeholder}</option>
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          size={14}
-          className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-foreground-subtle"
-        />
-      </div>
-    </label>
+    <SelectFiltro
+      label={label}
+      value={value}
+      onChange={(v) => onChange(v ?? '')}
+      options={options}
+      loading={loading}
+      disabled={disabled}
+      placeholder={placeholder}
+      className="flex-1"
+    />
   );
 }

@@ -2,26 +2,25 @@
 
 import { BarChart } from '@/shared/ui/components/bar-chart';
 import { EmptyState } from '@/shared/ui/components/empty-state';
-import { RadarChart } from '@/shared/ui/components/radar-chart';
 import { Skeleton } from '@/shared/ui/components/skeleton';
 import { cn } from '@/shared/ui/utils/cn';
 import { formatearValor } from '@/shared/ui/utils/formatear-valor';
 import {
   ActivitySquare,
   ArrowDownCircle,
+  ArrowLeftRight,
   ArrowUpCircle,
   BarChart3,
   Globe2,
   Info,
-  Layers,
   type LucideIcon,
-  Radar as RadarIcon,
   Sigma,
 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { useIndicadoresPorDepartamentoSocioeconomico } from '../../application/hooks';
 import { FiltroSocioeconomico } from '../../domain/entities';
 import { badgeNivelRiesgoClass, configNivelRiesgo } from './calificacion-utils';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 export interface PanelNacionalSocioProps {
   /**
@@ -47,8 +46,7 @@ export interface PanelNacionalSocioProps {
  * Vista alternativa al mapa cuando el indicador es nacional. La visualización
  * se adapta a la cantidad de criterios:
  *   1 criterio:   KPIs grandes (sin barra aislada) + observación destacada.
- *   2–4:           KPIs comparativos + radar normalizado.
- *   5–7:           Barras horizontales (ranking compacto).
+ *   2–7:           KPIs comparativos + barras horizontales ordenadas.
  *   ≥ 8:           Tabla analítica densa para evitar saturación visual.
  *
  * En todos los casos se respeta `seriesEstadisticas` (filtro cliente) para
@@ -121,7 +119,6 @@ export function PanelNacionalSocio({
   const n = criterios.length;
   const modo: ModoVisualizacion =
     n === 1 ? 'unico'
-    : n <= 4 ? 'compacto'
     : n <= 7 ? 'barras'
     : 'tabla';
 
@@ -135,12 +132,12 @@ export function PanelNacionalSocio({
       {!embebido ? (
         <header className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-info/30 bg-info-muted/40 px-3 py-3 sm:px-4">
           <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:gap-3">
-            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-info-muted text-info sm:h-8 sm:w-8">
+            <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-info-muted text-info-foreground sm:h-8 sm:w-8">
               <Globe2 size={14} className="sm:hidden" />
               <Globe2 size={16} className="hidden sm:block" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="label-eyebrow text-info">
+              <p className="label-eyebrow text-info-foreground">
                 Nivel {principal.nivelGeografico ?? 'agregado'}
               </p>
               <h3 className="mt-0.5 break-words text-sm font-semibold leading-snug text-foreground sm:truncate sm:text-base">
@@ -150,7 +147,7 @@ export function PanelNacionalSocio({
                 Período <span className="font-semibold text-foreground">{principal.periodo}</span>
                 {principal.referencia ? <> · {principal.referencia}</> : null}
                 {seleccion.size > 0 && (
-                  <> · <span className="font-semibold text-info">{n} {n === 1 ? 'serie' : 'series'} filtradas</span></>
+                  <> · <span className="font-semibold text-info-foreground">{n} {n === 1 ? 'serie' : 'series'} filtradas</span></>
                 )}
               </p>
             </div>
@@ -185,10 +182,27 @@ export function PanelNacionalSocio({
       {/* Modos 2-3: KPIs comparativos (visible siempre que haya >1 serie). */}
       {modo !== 'unico' && (
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {/* La cantidad de series ya aparece en el encabezado; la brecha
+              dice algo que las demás cifras no: cuánto se separan los
+              extremos. */}
           <KpiDestacado
-            icon={Layers}
-            label="Series analizadas"
-            value={String(destacados.cantidad)}
+            icon={ArrowLeftRight}
+            label="Brecha entre series"
+            value={
+              destacados.maximo && destacados.minimo
+                ? fmt(destacados.maximo.valor - destacados.minimo.valor)
+                : '—'
+            }
+            caption={
+              destacados.maximo && destacados.minimo && destacados.minimo.valor > 0
+                ? `El más alto supera en ${formatearPorcentaje(
+                    ((destacados.maximo.valor - destacados.minimo.valor) /
+                      destacados.minimo.valor) *
+                      100,
+                    1,
+                  )} al más bajo`
+                : undefined
+            }
           />
           <KpiDestacado
             icon={Sigma}
@@ -212,33 +226,8 @@ export function PanelNacionalSocio({
         </div>
       )}
 
-      {/* Modo compacto (2–4): radar normalizado para lectura rápida del balance entre criterios. */}
-      {modo === 'compacto' && (
-        <div className="rounded-xl border border-border bg-surface p-3 shadow-soft sm:p-4">
-          <header className="mb-3 flex items-start gap-2">
-            <RadarIcon size={16} className="mt-0.5 shrink-0 text-brand" />
-            <div className="min-w-0">
-              <p className="label-eyebrow">Balance por serie estadística</p>
-              <p className="text-xs text-foreground-muted">
-                Valores normalizados (% sobre el máximo) — los valores exactos están en las tarjetas debajo.
-              </p>
-            </div>
-          </header>
-          <div className="h-64 sm:h-72">
-            <RadarChart
-              labels={criterios.map((c) => truncar(c.etiqueta, 18))}
-              datasets={[
-                {
-                  label: filtro.dimension ?? 'Valor',
-                  data: normalizar(criterios.map((c) => c.valor)),
-                },
-              ]}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Modo barras (5–7): ranking compacto. */}
+      {/* Modo barras (2–7): ranking ordenado. Con 2–4 series antes se usaba
+          un radar, pero con tres ejes era un triángulo difícil de leer. */}
       {modo === 'barras' && (
         <div className="rounded-xl border border-border bg-surface p-3 shadow-soft sm:p-4">
           <header className="mb-3 flex flex-wrap items-start justify-between gap-2">
@@ -255,12 +244,12 @@ export function PanelNacionalSocio({
               {n} series
             </span>
           </header>
-          <div className="h-64 sm:h-72">
+          <div className={n <= 4 ? 'h-48 sm:h-52' : 'h-64 sm:h-72'}>
             {(() => {
               const ordenados = [...criterios].sort((a, b) => b.valor - a.valor);
               return (
                 <BarChart
-                  labels={ordenados.map((c) => truncar(c.etiqueta, 22))}
+                  labels={ordenados.map((c) => c.etiqueta)}
                   data={ordenados.map((c) => c.valor)}
                   observaciones={ordenados.map((c) => c.observacion)}
                   label={filtro.dimension ?? 'Valor'}
@@ -323,7 +312,7 @@ export function PanelNacionalSocio({
                   </p>
                   {c.observacion && (
                     <div className="flex items-start gap-2 rounded-lg bg-surface px-2.5 py-2 text-[11px] leading-snug text-foreground-muted">
-                      <Info size={12} className="mt-0.5 shrink-0 text-info" />
+                      <Info size={12} className="mt-0.5 shrink-0 text-info-foreground" />
                       <span className="break-words">{c.observacion}</span>
                     </div>
                   )}
@@ -341,7 +330,7 @@ export function PanelNacionalSocio({
 /*  Helpers internos                                                       */
 /* ====================================================================== */
 
-type ModoVisualizacion = 'unico' | 'compacto' | 'barras' | 'tabla';
+type ModoVisualizacion = 'unico' | 'barras' | 'tabla';
 
 interface CriterioVista {
   key: string;
@@ -400,16 +389,6 @@ function calcularNivelPredominante(rows: { nivelRiesgo: string | null }[]): stri
   return mejor?.clave ?? null;
 }
 
-function truncar(s: string, n: number): string {
-  if (s.length <= n) return s;
-  return `${s.slice(0, n - 1)}…`;
-}
-
-function normalizar(valores: number[]): number[] {
-  const max = Math.max(...valores, 1);
-  return valores.map((v) => (v / max) * 100);
-}
-
 /* ---------- Tarjeta de criterio único ---------- */
 
 function SingleCriterioCard({
@@ -443,7 +422,7 @@ function SingleCriterioCard({
       </p>
       {criterio.observacion && (
         <div className="mt-4 flex items-start gap-2 rounded-lg border border-info/20 bg-info-muted/30 px-3 py-2 text-xs leading-snug text-foreground-muted">
-          <Info size={13} className="mt-0.5 shrink-0 text-info" />
+          <Info size={13} className="mt-0.5 shrink-0 text-info-foreground" />
           <span className="break-words">{criterio.observacion}</span>
         </div>
       )}
@@ -536,9 +515,9 @@ function TablaAnalitica({
                     className={cn(
                       'px-3 py-2 text-right num-tabular',
                       vsPromedio > 5
-                        ? 'text-danger'
+                        ? 'text-danger-foreground'
                         : vsPromedio < -5
-                          ? 'text-success'
+                          ? 'text-success-foreground'
                           : 'text-foreground-muted',
                     )}
                   >
@@ -581,9 +560,9 @@ function KpiDestacado({ icon: Icon, label, value, caption, tone = 'neutral' }: K
         <span
           className={cn(
             'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg sm:h-7 sm:w-7',
-            tone === 'danger' && 'bg-danger-muted text-danger',
-            tone === 'success' && 'bg-success-muted text-success',
-            tone === 'neutral' && 'bg-info-muted text-info',
+            tone === 'danger' && 'bg-danger-muted text-danger-foreground',
+            tone === 'success' && 'bg-success-muted text-success-foreground',
+            tone === 'neutral' && 'bg-info-muted text-info-foreground',
           )}
         >
           <Icon size={13} className="sm:hidden" />

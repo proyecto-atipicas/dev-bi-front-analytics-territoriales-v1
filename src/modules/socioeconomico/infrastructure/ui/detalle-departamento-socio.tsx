@@ -215,9 +215,9 @@ export function DetalleDepartamentoSocio({
       {/* Observación del último reporte del departamento. */}
       {principal.observacion && (
         <div className="flex items-start gap-2 rounded-lg border border-info/20 bg-info-muted/30 px-3 py-2.5 text-xs leading-snug text-foreground-muted">
-          <Info size={13} className="mt-0.5 shrink-0 text-info" />
+          <Info size={13} className="mt-0.5 shrink-0 text-info-foreground" />
           <div className="min-w-0 break-words">
-            <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-info">
+            <p className="mb-0.5 text-xs font-medium text-info-foreground">
               Observación · período {principal.periodo}
             </p>
             <p>{principal.observacion}</p>
@@ -278,15 +278,15 @@ function KpiBlock({
     <div className="flex min-w-0 flex-col rounded-lg border border-border bg-surface px-3 py-2.5">
       <div className="flex items-center gap-1.5">
         {Icon && <Icon size={12} className="shrink-0 text-foreground-subtle" />}
-        <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+        <p className="truncate text-xs font-medium text-foreground-muted">
           {label}
         </p>
       </div>
       <p
         className={cn(
           'mt-1 truncate text-lg font-semibold tracking-tight num-tabular',
-          tone === 'success' && 'text-success',
-          tone === 'danger' && 'text-danger',
+          tone === 'success' && 'text-success-foreground',
+          tone === 'danger' && 'text-danger-foreground',
           tone === 'neutral' && 'text-foreground',
         )}
       >
@@ -296,8 +296,8 @@ function KpiBlock({
             <TendenciaIcon
               size={14}
               className={cn(
-                tendencia === 'up' && 'text-danger',
-                tendencia === 'down' && 'text-success',
+                tendencia === 'up' && 'text-danger-foreground',
+                tendencia === 'down' && 'text-success-foreground',
                 tendencia === 'flat' && 'text-foreground-subtle',
               )}
             />

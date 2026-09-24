@@ -26,7 +26,7 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { href: '/', label: 'Home', icon: Home, group: 'Principal' },
+  { href: '/', label: 'Resumen ejecutivo', icon: Home, group: 'General' },
   {
     href: '/electoral/comportamiento',
     label: 'Comportamiento electoral',
@@ -46,8 +46,8 @@ const NAV: NavItem[] = [
     group: 'Análisis electoral',
   },
   { href: '/socioeconomico', label: 'Socioeconómico', icon: TrendingUp, group: 'Análisis social' },
-  { href: '/poblacional', label: 'Impacto Poblacional', icon: Users, group: 'Análisis social' },
-  { href: '/fuentes', label: 'Fuentes', icon: Files, group: 'Transparencia' },
+  { href: '/poblacional', label: 'Impacto poblacional', icon: Users, group: 'Análisis social' },
+  { href: '/fuentes', label: 'Fuentes documentales', icon: Files, group: 'Transparencia' },
 ];
 
 export function Sidebar() {
@@ -69,7 +69,7 @@ export function Sidebar() {
       {/* Backdrop móvil */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm transition-opacity duration-200 lg:hidden',
+          'fixed inset-0 z-40 bg-chrome/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden',
           mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
         onClick={() => setMobileOpen(false)}
@@ -78,48 +78,49 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-border bg-surface transition-[width,transform] duration-200',
+          'fixed inset-y-0 left-0 z-50 flex h-screen flex-col bg-chrome text-chrome-foreground transition-[width,transform] duration-200',
           'lg:sticky lg:top-0 lg:z-30 lg:translate-x-0',
-          collapsed ? 'lg:w-[64px]' : 'lg:w-[248px]',
-          'w-[260px]',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          collapsed ? 'lg:w-[72px]' : 'lg:w-[256px]',
+          // En móvil convive con el botón de cerrar: 288px evita cortar la marca.
+          'w-[288px]',
+          mobileOpen ? 'translate-x-0 shadow-elevated' : '-translate-x-full lg:translate-x-0',
         )}
         aria-label="Navegación principal"
       >
-        {/* Brand */}
-        <div className="flex h-14 items-center gap-3 border-b border-border px-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-soft">
-            <BarChart3 className="h-5 w-5" />
+        {/* Marca */}
+        <div className={cn('flex items-center gap-3 px-4 pb-5 pt-5', collapsed && 'lg:justify-center lg:px-0')}>
+          <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center gap-1 rounded-xl bg-chrome-foreground/10 ring-1 ring-inset ring-chrome-foreground/15">
+            <BarChart3 className="h-[18px] w-[18px]" />
+            <span className="flag-rule flag-rule-on-chrome block h-[3px] w-5" aria-hidden />
           </div>
-          {!collapsed && (
-            <div className="min-w-0 flex-1 animate-fade-in">
-              <p className="truncate text-sm font-semibold leading-tight text-foreground">
-                Analítica Territorial
-              </p>
-              <p className="truncate text-[11px] text-foreground-muted">
-                Plataforma Colombia
-              </p>
-            </div>
-          )}
+          <div className={cn('min-w-0 flex-1', collapsed && 'lg:hidden')}>
+            <p className="font-display truncate text-[15px] font-bold leading-tight">
+              Analítica Territorial
+            </p>
+            <p className="truncate text-xs text-chrome-muted">República de Colombia</p>
+          </div>
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
-            className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-surface-elevated hover:text-foreground lg:hidden"
+            className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg text-chrome-muted transition-colors hover:bg-chrome-hover hover:text-chrome-foreground lg:hidden"
             aria-label="Cerrar menú"
           >
             <X size={16} />
           </button>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2.5 py-3">
+        {/* Navegación */}
+        <nav className="flex-1 overflow-y-auto px-3 pb-3">
           {Object.entries(groups).map(([group, items]) => (
-            <div key={group} className="mb-4 last:mb-0">
-              {!collapsed && (
-                <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground-subtle">
-                  {group}
-                </p>
-              )}
+            <div key={group} className="mb-5 last:mb-0">
+              <p
+                className={cn(
+                  'mb-1.5 px-3 text-xs font-medium text-chrome-muted/80',
+                  collapsed && 'lg:sr-only',
+                )}
+              >
+                {group}
+              </p>
               <ul className="space-y-0.5">
                 {items.map((item) => {
                   const active =
@@ -132,20 +133,30 @@ export function Sidebar() {
                       <Link
                         href={item.href}
                         title={collapsed ? item.label : undefined}
+                        aria-current={active ? 'page' : undefined}
                         className={cn(
-                          'group relative flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors',
+                          'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                          collapsed && 'lg:justify-center lg:px-0',
                           active
-                            ? 'bg-brand text-brand-foreground shadow-soft'
-                            : 'text-foreground-muted hover:bg-surface-elevated hover:text-foreground',
+                            ? 'bg-chrome-foreground/[0.12] font-semibold text-chrome-foreground'
+                            : 'font-medium text-chrome-muted hover:bg-chrome-foreground/[0.06] hover:text-chrome-foreground',
                         )}
                       >
+                        {/* Indicador de vista activa: el amarillo de la bandera */}
+                        <span
+                          className={cn(
+                            'absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-flag-yellow transition-opacity',
+                            active ? 'opacity-100' : 'opacity-0',
+                          )}
+                          aria-hidden
+                        />
                         <Icon
                           size={18}
-                          className={cn('shrink-0', !active && 'group-hover:text-brand')}
+                          className={cn('shrink-0', active && 'text-flag-yellow')}
                         />
-                        {!collapsed && (
-                          <span className="truncate animate-fade-in">{item.label}</span>
-                        )}
+                        <span className={cn('truncate', collapsed && 'lg:hidden')}>
+                          {item.label}
+                        </span>
                       </Link>
                     </li>
                   );
@@ -155,22 +166,24 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* Toggle (escritorio) */}
-        <button
-          type="button"
-          onClick={toggle}
-          className={cn(
-            'hidden h-11 items-center gap-2 border-t border-border px-4 text-xs font-medium text-foreground-muted transition-colors hover:bg-surface-elevated hover:text-foreground lg:flex',
-            collapsed && 'justify-center',
-          )}
-          aria-label={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
-        >
-          <ChevronLeft
-            size={16}
-            className={cn('transition-transform duration-200', collapsed && 'rotate-180')}
-          />
-          {!collapsed && <span className="animate-fade-in">Colapsar</span>}
-        </button>
+        {/* Colapsar (escritorio) */}
+        <div className="hidden border-t border-chrome-foreground/10 p-3 lg:block">
+          <button
+            type="button"
+            onClick={toggle}
+            className={cn(
+              'flex h-9 w-full items-center gap-2 rounded-lg px-3 text-xs font-medium text-chrome-muted transition-colors hover:bg-chrome-foreground/[0.06] hover:text-chrome-foreground',
+              collapsed && 'justify-center px-0',
+            )}
+            aria-label={collapsed ? 'Expandir menú' : 'Contraer menú'}
+          >
+            <ChevronLeft
+              size={16}
+              className={cn('transition-transform duration-200', collapsed && 'rotate-180')}
+            />
+            {!collapsed && <span>Contraer menú</span>}
+          </button>
+        </div>
       </aside>
     </>
   );

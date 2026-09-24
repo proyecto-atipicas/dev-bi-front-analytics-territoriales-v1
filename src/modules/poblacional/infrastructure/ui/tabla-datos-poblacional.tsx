@@ -13,7 +13,7 @@ export interface TablaDatosPoblacionalProps {
 }
 
 const fmt = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 });
-const REGISTROS_POR_PAGINA = 10;
+const REGISTROS_POR_PAGINA = 20;
 
 function formatPeriodo(anio: number, mes: number | null): string {
   if (!mes) return String(anio);
@@ -91,12 +91,12 @@ export function TablaDatosPoblacional({ filtro }: TablaDatosPoblacionalProps) {
                 key={`${p.anio}-${p.mes ?? '_'}-${p.criterio ?? '_'}-${i}`}
                 className="transition-colors hover:bg-surface-elevated/60"
               >
-                <td className="px-3 py-2 num-tabular text-foreground">
+                <td className="whitespace-nowrap px-3 py-2 num-tabular text-foreground">
                   {formatPeriodo(p.anio, p.mes)}
                 </td>
-                <td className="px-3 py-2 text-foreground">
+                <td className="w-full max-w-0 px-3 py-2 text-foreground">
                   {p.criterio ? (
-                    <span className="block max-w-[8rem] truncate sm:max-w-[12rem] lg:max-w-[18rem]" title={p.criterio}>
+                    <span className="line-clamp-2 break-words" title={p.criterio}>
                       {p.criterio}
                     </span>
                   ) : (
@@ -164,6 +164,7 @@ function ordenar(serie: SeriePoblacionalPunto[]): SeriePoblacionalPunto[] {
     const mb = b.mes ?? -1;
     const ma = a.mes ?? -1;
     if (mb !== ma) return mb - ma;
-    return (a.criterio ?? '').localeCompare(b.criterio ?? '');
+    // Dentro de cada medición, de mayor a menor valor (como las barras).
+    return b.valor - a.valor || (a.criterio ?? '').localeCompare(b.criterio ?? '');
   });
 }

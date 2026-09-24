@@ -21,6 +21,8 @@ export type AlcanceFiltros =
 
 export interface VistaMeta {
   ruta: string;
+  /** Grupo de navegación al que pertenece (se muestra sobre el título). */
+  seccion: string;
   titulo: string;
   descripcion: string;
   icon: LucideIcon;
@@ -40,8 +42,9 @@ export interface VistaMeta {
 const VISTAS: VistaMeta[] = [
   {
     ruta: '/electoral/comparativo',
+    seccion: 'Análisis electoral',
     titulo: 'Comparativo electoral',
-    descripcion: 'Comparativo pairwise por partido o candidato con desglose territorial',
+    descripcion: 'Enfrente dos candidatos o partidos y vea dónde gana cada uno',
     icon: GitCompareArrows,
     // Sin barra global: todos los filtros (corporación por lado + ámbito
     // territorial) viven en el panel de selección de la propia vista.
@@ -49,6 +52,7 @@ const VISTAS: VistaMeta[] = [
   },
   {
     ruta: '/electoral/territorios-ganados',
+    seccion: 'Análisis electoral',
     titulo: 'Territorios ganados',
     descripcion:
       'Territorios donde un candidato fue el más votado, a nivel departamental o municipal',
@@ -57,6 +61,7 @@ const VISTAS: VistaMeta[] = [
   },
   {
     ruta: '/electoral/comportamiento',
+    seccion: 'Análisis electoral',
     titulo: 'Comportamiento electoral',
     descripcion: 'Resultados, rankings y mapas territoriales',
     icon: Vote,
@@ -64,6 +69,7 @@ const VISTAS: VistaMeta[] = [
   },
   {
     ruta: '/socioeconomico',
+    seccion: 'Análisis social',
     titulo: 'Estadísticas socioeconómicas',
     descripcion: 'Indicadores territoriales por fuente de información',
     icon: TrendingUp,
@@ -71,6 +77,7 @@ const VISTAS: VistaMeta[] = [
   },
   {
     ruta: '/poblacional',
+    seccion: 'Análisis social',
     titulo: 'Impacto poblacional',
     descripcion: 'Encuestas y mediciones por dimensión',
     icon: Users,
@@ -78,6 +85,7 @@ const VISTAS: VistaMeta[] = [
   },
   {
     ruta: '/fuentes',
+    seccion: 'Transparencia',
     titulo: 'Fuentes documentales',
     descripcion: 'Trazabilidad de las publicaciones que respaldan los indicadores',
     icon: Files,
@@ -85,7 +93,8 @@ const VISTAS: VistaMeta[] = [
   },
   {
     ruta: '/',
-    titulo: 'Dashboard ejecutivo',
+    seccion: 'General',
+    titulo: 'Resumen ejecutivo',
     descripcion: 'Vista consolidada electoral, socioeconómica y poblacional',
     icon: Home,
     alcanceFiltros: 'global',

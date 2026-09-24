@@ -11,26 +11,31 @@ import { Card, CardBody, CardHeader } from '@/shared/ui/components/card';
 import { EmptyState } from '@/shared/ui/components/empty-state';
 import { Skeleton } from '@/shared/ui/components/skeleton';
 import { cn } from '@/shared/ui/utils/cn';
+import { formatearTerritorio } from '@/shared/ui/utils/formatear-territorio';
 import { Globe2, MapPin, PieChart, Target, Trophy } from 'lucide-react';
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 const fmt = new Intl.NumberFormat('es-CO');
 
 export interface TopTerritorialProps {
-  /** Filas a mostrar. Default 7. */
-  limite?: number;
+  /**
+   * Filas visibles sin desplazarse. El listado incluye todos los territorios;
+   * el resto se alcanza con scroll (barra oculta). Default 10.
+   */
+  filasVisibles?: number;
 }
 
 /**
  * Top territorial adaptativo.
  *
- * - Sin departamento: top N departamentos por votación nacional.
- * - Con departamento: top N municipios del departamento seleccionado.
+ * - Sin departamento: ranking de departamentos por votación nacional.
+ * - Con departamento: ranking de municipios del departamento seleccionado.
+ *   En ambos casos se ven las primeras N filas y el resto se desplaza.
  * - Con municipio: oculta el listado (la votación del municipio ya se muestra
  *   en el resumen superior) y en su lugar muestra el aporte del municipio
  *   frente a su departamento y al total nacional.
  */
-export function TopTerritorial({ limite = 7 }: TopTerritorialProps) {
+export function TopTerritorial({ filasVisibles = 10 }: TopTerritorialProps) {
   const codigoCorporacion = useFiltrosGlobales((s) => s.codigoCorporacion);
   const codigoDepartamento = useFiltrosGlobales((s) => s.codigoDepartamento);
   const codigoMunicipio = useFiltrosGlobales((s) => s.codigoMunicipio);
@@ -55,7 +60,7 @@ export function TopTerritorial({ limite = 7 }: TopTerritorialProps) {
   return (
     <ListadoTerritorial
       enModoMunicipal={enModoMunicipal}
-      limite={limite}
+      filasVisibles={filasVisibles}
       onSelectDepartamento={setDepartamento}
       onSelectMunicipio={setMunicipio}
     />
@@ -68,14 +73,14 @@ export function TopTerritorial({ limite = 7 }: TopTerritorialProps) {
 
 interface ListadoTerritorialProps {
   enModoMunicipal: boolean;
-  limite: number;
+  filasVisibles: number;
   onSelectDepartamento: (codigo: string) => void;
   onSelectMunicipio: (codigo: string | null) => void;
 }
 
 function ListadoTerritorial({
   enModoMunicipal,
-  limite,
+  filasVisibles,
   onSelectDepartamento,
   onSelectMunicipio,
 }: ListadoTerritorialProps) {
@@ -96,30 +101,58 @@ function ListadoTerritorial({
     if (enModoMunicipal) {
       return [...(municipios ?? [])]
         .sort((a, b) => b.totalVotos - a.totalVotos)
-        .slice(0, limite)
         .map((m) => ({
           id: `${m.codigoDepartamento}-${m.codigoMunicipio}`,
           codigo: m.codigoMunicipio,
-          nombre: m.nombreMunicipio,
+          nombre: formatearTerritorio(m.nombreMunicipio),
           votos: m.totalVotos,
           activo: codigoMunicipio === m.codigoMunicipio,
         }));
     }
     return [...(departamentos ?? [])]
       .sort((a, b) => b.totalVotos - a.totalVotos)
-      .slice(0, limite)
       .map((d) => ({
         id: d.codigoDepartamento,
         codigo: d.codigoDepartamento,
-        nombre: d.nombreDepartamento,
+        nombre: formatearTerritorio(d.nombreDepartamento),
         votos: d.totalVotos,
         activo: false,
       }));
-  }, [enModoMunicipal, departamentos, municipios, limite, codigoMunicipio]);
+  }, [enModoMunicipal, departamentos, municipios, codigoMunicipio]);
 
   const max = filas[0]?.votos ?? 1;
   const isLoading = enModoMunicipal ? loadingMun : loadingDep;
   const isError = enModoMunicipal ? errorMun : errorDep;
+
+  // Alto del área desplazable = alto real de las primeras `filasVisibles`
+  // filas, medido tras pintar (las filas no tienen alto fijo en CSS).
+  const listaRef = useRef<HTMLOListElement>(null);
+  const [altoVisible, setAltoVisible] = useState<number | undefined>(undefined);
+  const [hayMasAbajo, setHayMasAbajo] = useState(false);
+
+  useLayoutEffect(() => {
+    const lista = listaRef.current;
+    if (!lista) return;
+    const items = Array.from(lista.children).slice(0, filasVisibles) as HTMLElement[];
+    const alto = items.reduce((acc, li) => acc + li.offsetHeight, 0);
+    setAltoVisible(filas.length > filasVisibles ? alto : undefined);
+    lista.scrollTop = 0;
+    setHayMasAbajo(filas.length > filasVisibles);
+  }, [filas, filasVisibles]);
+
+  const onScroll = () => {
+    const lista = listaRef.current;
+    if (!lista) return;
+    setHayMasAbajo(lista.scrollTop + lista.clientHeight < lista.scrollHeight - 2);
+  };
+
+  const ambito = enModoMunicipal
+    ? 'por votación en el departamento'
+    : 'por votación nacional';
+  const descripcion =
+    filas.length > 0
+      ? `${fmt.format(filas.length)} ${enModoMunicipal ? 'municipios' : 'departamentos'}, ${ambito}`
+      : ambito.charAt(0).toUpperCase() + ambito.slice(1);
 
   const handleClick = (codigo: string, activo: boolean) => {
     if (enModoMunicipal) {
@@ -132,15 +165,15 @@ function ListadoTerritorial({
   return (
     <Card className="flex h-full flex-col">
       <CardHeader
-        title={enModoMunicipal ? `Top ${limite} municipios` : `Top ${limite} departamentos`}
-        description={enModoMunicipal ? 'Por votación en el departamento' : 'Por votación nacional'}
+        title={enModoMunicipal ? 'Ranking de municipios' : 'Ranking de departamentos'}
+        description={descripcion}
         icon={Trophy}
         dense
       />
       <CardBody padding="none" className="flex-1">
         {isLoading ? (
           <div className="space-y-2 p-3">
-            {Array.from({ length: limite }).map((_, i) => (
+            {Array.from({ length: filasVisibles }).map((_, i) => (
               <Skeleton key={i} className="h-9 w-full" />
             ))}
           </div>
@@ -160,49 +193,65 @@ function ListadoTerritorial({
             />
           </div>
         ) : (
-          <ol className="divide-y divide-border">
-            {filas.map((f, idx) => {
-              const pct = (f.votos / max) * 100;
-              return (
-                <li key={f.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleClick(f.codigo, f.activo)}
-                    className={
-                      'group flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-surface-elevated/60 focus:outline-none focus-visible:bg-surface-elevated' +
-                      (f.activo ? ' bg-brand-muted/40' : '')
-                    }
-                    title={enModoMunicipal ? 'Filtrar por municipio' : 'Filtrar por departamento'}
-                  >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-elevated text-[11px] font-bold text-foreground-muted group-hover:bg-brand group-hover:text-brand-foreground">
-                      {idx + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2 text-xs">
-                        <span className="truncate font-medium text-foreground" title={f.nombre}>
-                          {f.nombre}
-                        </span>
-                        <span className="shrink-0 num-tabular font-semibold text-foreground">
-                          {fmt.format(f.votos)}
-                        </span>
+          <div className="relative">
+            <ol
+              ref={listaRef}
+              onScroll={onScroll}
+              style={{ maxHeight: altoVisible }}
+              className="scrollbar-oculto divide-y divide-border overflow-y-auto overscroll-contain"
+              aria-label={enModoMunicipal ? 'Ranking de municipios' : 'Ranking de departamentos'}
+            >
+              {filas.map((f, idx) => {
+                const pct = (f.votos / max) * 100;
+                return (
+                  <li key={f.id}>
+                    <button
+                      type="button"
+                      onClick={() => handleClick(f.codigo, f.activo)}
+                      className={
+                        'group flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-surface-elevated/60 focus:outline-none focus-visible:bg-surface-elevated' +
+                        (f.activo ? ' bg-brand-muted/40' : '')
+                      }
+                      title={enModoMunicipal ? 'Filtrar por municipio' : 'Filtrar por departamento'}
+                    >
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-elevated text-[11px] font-bold text-foreground-muted group-hover:bg-brand group-hover:text-brand-foreground">
+                        {idx + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="truncate font-medium text-foreground" title={f.nombre}>
+                            {f.nombre}
+                          </span>
+                          <span className="shrink-0 num-tabular font-semibold text-foreground">
+                            {fmt.format(f.votos)}
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface-elevated">
+                          <div
+                            className="h-full rounded-full bg-brand transition-all duration-500"
+                            style={{ width: `${Math.min(100, pct)}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface-elevated">
-                        <div
-                          className="h-full rounded-full bg-brand transition-all duration-500"
-                          style={{ width: `${Math.min(100, pct)}%` }}
-                        />
-                      </div>
-                    </div>
-                    <MapPin
-                      size={13}
-                      className="shrink-0 text-foreground-subtle transition-colors group-hover:text-brand"
-                      aria-hidden
-                    />
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
+                      <MapPin
+                        size={13}
+                        className="shrink-0 text-foreground-subtle transition-colors group-hover:text-brand"
+                        aria-hidden
+                      />
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+            {/* Sin barra visible, el degradado indica que la lista continúa. */}
+            <div
+              className={cn(
+                'pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface to-transparent transition-opacity duration-200',
+                hayMasAbajo ? 'opacity-100' : 'opacity-0',
+              )}
+              aria-hidden
+            />
+          </div>
         )}
       </CardBody>
     </Card>
@@ -249,7 +298,10 @@ function ParticipacionMunicipio({
   const { data: departamentos } = useDepartamentos();
 
   const nombreDepartamento = useMemo(
-    () => departamentos?.find((d) => d.codigo === codigoDepartamento)?.nombre,
+    () => {
+      const n = departamentos?.find((d) => d.codigo === codigoDepartamento)?.nombre;
+      return n ? formatearTerritorio(n) : undefined;
+    },
     [departamentos, codigoDepartamento],
   );
 
@@ -326,7 +378,7 @@ const TONO_CLASSES: Record<Tono, { stroke: string; bg: string; pill: string }> =
   info: {
     stroke: 'text-info',
     bg: 'bg-info',
-    pill: 'bg-info-muted text-info',
+    pill: 'bg-info-muted text-info-foreground',
   },
 };
 
@@ -363,7 +415,7 @@ function ParticipacionFila({
           >
             <Icono size={11} />
           </span>
-          <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
+          <p className="truncate text-[11px] font-medium text-foreground-muted">
             {etiqueta}
           </p>
         </div>

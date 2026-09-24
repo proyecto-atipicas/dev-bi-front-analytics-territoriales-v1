@@ -89,10 +89,7 @@ export function MultiSelectFiltro({
   const limpiar = () => onChange([]);
 
   return (
-    <label className={cn('flex flex-col gap-1', className)} ref={ref as never}>
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
-        {label}
-      </span>
+    <div className={cn('relative min-w-0', className)} ref={ref as never}>
       <div className="relative">
         <button
           type="button"
@@ -100,20 +97,32 @@ export function MultiSelectFiltro({
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="listbox"
           aria-expanded={open}
+          aria-label={label}
           className={cn(
-            'flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 text-left text-sm text-foreground shadow-soft transition-colors',
-            'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20',
+            'flex h-12 w-full flex-col justify-center rounded-lg border bg-surface pl-3 pr-8 text-left transition-colors',
+            'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15',
             'disabled:cursor-not-allowed disabled:opacity-60',
-            open && 'border-brand ring-2 ring-brand/20',
+            !ninguno && !todos
+              ? 'border-brand/40 bg-brand-muted/40'
+              : 'border-border hover:border-border-strong',
+            open && 'border-brand ring-2 ring-brand/15',
           )}
         >
-          <span className="truncate">
+          <span
+            className={cn(
+              'truncate text-[11px] font-medium leading-none',
+              !ninguno && !todos ? 'text-brand' : 'text-foreground-muted',
+            )}
+          >
+            {label}
+          </span>
+          <span className="mt-1 w-full truncate text-sm font-medium leading-tight text-foreground">
             {ninguno && !todos ? placeholder : resumen}
           </span>
           <ChevronDown
-            size={14}
+            size={15}
             className={cn(
-              'shrink-0 text-foreground-subtle transition-transform',
+              'pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-foreground-subtle transition-transform',
               open && 'rotate-180',
             )}
           />
@@ -122,7 +131,7 @@ export function MultiSelectFiltro({
         {open && (
           <div
             role="listbox"
-            className="absolute z-30 mt-1 w-full max-h-72 overflow-auto rounded-lg border border-border bg-surface shadow-md"
+            className="absolute z-30 mt-1 w-full max-h-72 overflow-auto rounded-lg border border-border bg-surface shadow-elevated"
           >
             {options.length > 1 && (
               <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface-elevated/95 px-3 py-1.5 backdrop-blur">
@@ -180,6 +189,6 @@ export function MultiSelectFiltro({
           </div>
         )}
       </div>
-    </label>
+    </div>
   );
 }

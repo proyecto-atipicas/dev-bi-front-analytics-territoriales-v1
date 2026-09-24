@@ -18,26 +18,26 @@ export interface SelectorModoComparativoProps {
 export function SelectorModoComparativo({ activo, onSelect }: SelectorModoComparativoProps) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <span className="text-xs font-medium text-foreground-muted">
         Tipo de comparación
       </span>
-      <div className="inline-flex flex-wrap rounded-lg border border-border bg-surface-elevated p-0.5">
+      <div className="inline-flex w-fit max-w-full flex-wrap gap-1 rounded-xl border border-border bg-background p-1">
         <Boton
           activo={activo === 'candidato'}
           onClick={() => onSelect('candidato')}
-          icon={<UserCheck size={13} />}
+          icon={<UserCheck size={15} />}
           label="Por candidato"
         />
         <Boton
           activo={activo === 'partido'}
           onClick={() => onSelect('partido')}
-          icon={<Building2 size={13} />}
+          icon={<Building2 size={15} />}
           label="Por partido"
         />
         <Boton
           activo={activo === 'estadistico'}
           onClick={() => onSelect('estadistico')}
-          icon={<BarChart3 size={13} />}
+          icon={<BarChart3 size={15} />}
           label="Estadístico"
         />
       </div>
@@ -60,11 +60,12 @@ function Boton({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={activo}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+        'inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-colors',
         activo
-          ? 'bg-brand text-brand-foreground shadow-soft'
-          : 'text-foreground-muted hover:bg-surface hover:text-foreground',
+          ? 'bg-surface font-semibold text-foreground shadow-soft ring-1 ring-border/80 [&>svg]:text-brand'
+          : 'font-medium text-foreground-muted hover:text-foreground',
       )}
     >
       {icon}

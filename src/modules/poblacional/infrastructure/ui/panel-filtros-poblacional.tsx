@@ -38,10 +38,11 @@ export function PanelFiltrosPoblacional({
     [resumen, dimension],
   );
 
-  const { data: referencias, isLoading: loadingRefs } = useReferenciasPoblacional(
-    dimension,
-    fuente,
-  );
+  const {
+    data: referencias,
+    isLoading: loadingRefs,
+    isPlaceholderData: referenciasPrevias,
+  } = useReferenciasPoblacional(dimension, fuente);
 
   const { data: criteriosDisponibles, isLoading: loadingCrits } =
     useCriteriosPoblacional({
@@ -50,13 +51,32 @@ export function PanelFiltrosPoblacional({
       referencia,
     });
 
+  // Al elegir una dimensión o fuente se completa el resto de la cadena con la
+  // primera opción disponible: dejar fuente y referencia vacías dejaba las
+  // tres tarjetas de la vista en blanco. Limpiar un filtro no autocompleta.
+  const autocompletarReferencia = useRef(false);
+
   const setDimension = (next: string | null) => {
-    onChange({ dimension: next, fuente: null, referencia: null, criterios: [] });
+    const primeraFuente = next
+      ? ((resumen ?? []).find((d) => d.dimension === next)?.fuentes ?? [])[0]?.fuente ?? null
+      : null;
+    autocompletarReferencia.current = !!primeraFuente;
+    onChange({ dimension: next, fuente: primeraFuente, referencia: null, criterios: [] });
   };
 
   const setFuente = (next: string | null) => {
+    autocompletarReferencia.current = !!next;
     onChange({ ...value, fuente: next, referencia: null, criterios: [] });
   };
+
+  useEffect(() => {
+    if (!autocompletarReferencia.current || !dimension || !fuente || referencia != null) return;
+    // Mientras llega la lista nueva, react-query entrega la anterior: no
+    // se debe elegir una referencia de otra fuente.
+    if (referenciasPrevias || !referencias?.length) return;
+    autocompletarReferencia.current = false;
+    onChange({ dimension, fuente, referencia: referencias[0], criterios: [] });
+  }, [dimension, fuente, referencia, referencias, referenciasPrevias, onChange]);
 
   const setReferencia = (next: string | null) => {
     onChange({ ...value, referencia: next, criterios: [] });
@@ -151,14 +171,16 @@ export function PanelFiltrosPoblacional({
     <Card>
       <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
         <SlidersHorizontal size={14} className="text-brand" />
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-foreground">
+        <p className="text-[11px] font-medium text-foreground">
           Panel de filtros
         </p>
       </div>
 
       <div className="space-y-3 p-4">
         {/* Jerarquía obligatoria */}
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        {/* La referencia es una pregunta de encuesta completa: recibe el
+            doble de ancho para no cortarse. */}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,2fr)]">
           <SelectFiltro
             label="Dimensión"
             value={dimension}
@@ -219,7 +241,7 @@ export function PanelFiltrosPoblacional({
                   criteriosAbierto && 'rotate-180',
                 )}
               />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+              <span className="text-xs font-medium text-foreground-muted">
                 Criterios de la referencia
               </span>
               {referencia && totalCriterios > 0 && (
@@ -243,7 +265,7 @@ export function PanelFiltrosPoblacional({
                     limpiarCriterios();
                   }
                 }}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium text-foreground-muted transition-colors hover:bg-danger-muted/40 hover:text-danger"
+                className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium text-foreground-muted transition-colors hover:bg-danger-muted/40 hover:text-danger-foreground"
               >
                 <X size={11} />
                 Limpiar
@@ -281,7 +303,7 @@ export function PanelFiltrosPoblacional({
                           ? limpiarCriterios
                           : seleccionarTodos
                       }
-                      className="font-semibold uppercase tracking-wider text-brand transition-colors hover:text-brand/80"
+                      className="font-medium text-brand transition-colors hover:text-brand/80"
                     >
                       {criterios.length === totalCriterios
                         ? 'Deseleccionar todos'

@@ -11,9 +11,15 @@ import { Skeleton } from '@/shared/ui/components/skeleton';
 import { cn } from '@/shared/ui/utils/cn';
 import { ChevronLeft, ChevronRight, UserCheck } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { formatearNombrePersona } from '@/shared/ui/utils/formatear-territorio';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 const PAGE_SIZE = 10;
+// Si las filas apenas superan una página (p. ej. 11 de 10), se muestran
+// todas: una segunda página con una o dos filas sólo obliga a hacer clic.
+const porPaginaPara = (total: number) =>
+  total <= Math.ceil(PAGE_SIZE * 1.5) ? Math.max(total, 1) : PAGE_SIZE;
 
 export interface MatrizOrganizacionesProps {
   /** Cantidad de partidos a listar. Default 25. */
@@ -54,7 +60,8 @@ export function MatrizOrganizaciones({
     [partidos],
   );
 
-  const totalPaginas = Math.max(1, Math.ceil(filas.length / PAGE_SIZE));
+  const porPagina = porPaginaPara(filas.length);
+  const totalPaginas = Math.max(1, Math.ceil(filas.length / porPagina));
   const [pagina, setPagina] = useState(1);
 
   // Si cambian los filtros (cambia la lista), volvemos a la pág. 1.
@@ -63,8 +70,8 @@ export function MatrizOrganizaciones({
   }, [filas]);
 
   const paginaActual = Math.min(pagina, totalPaginas);
-  const inicio = (paginaActual - 1) * PAGE_SIZE;
-  const fin = Math.min(inicio + PAGE_SIZE, filas.length);
+  const inicio = (paginaActual - 1) * porPagina;
+  const fin = Math.min(inicio + porPagina, filas.length);
   const filasVisibles = useMemo(() => filas.slice(inicio, fin), [filas, inicio, fin]);
 
   if (isLoading) {
@@ -97,7 +104,9 @@ export function MatrizOrganizaciones({
 
   return (
     <div>
-      <div className="max-h-[32rem] overflow-auto">
+      {/* Sin alto máximo: la paginación ya limita las filas y un scroll
+          interno escondía la última fila bajo el pie de la tabla. */}
+      <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10 border-b border-border bg-surface-elevated/95 backdrop-blur text-left label-eyebrow">
             <tr>
@@ -264,12 +273,11 @@ function FilaPartido({
             />
           </button>
         </td>
-        <td className="px-3 py-2.5">
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className="block max-w-[9rem] truncate font-medium text-foreground sm:max-w-[16rem] md:max-w-[22rem] lg:max-w-[24rem] xl:max-w-[28rem]"
-              title={nombrePartido}
-            >
+        <td className="w-full max-w-0 px-3 py-2.5">
+          {/* En móvil el conteo de candidatos baja bajo el nombre para no
+              robarle ancho y partir las palabras. */}
+          <div className="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
+            <span className="line-clamp-2 font-medium text-foreground" title={nombrePartido}>
               {nombrePartido}
             </span>
             <span className="num-tabular shrink-0 rounded-full bg-surface-elevated px-1.5 py-0.5 text-[10px] font-semibold text-foreground-muted">
@@ -281,7 +289,7 @@ function FilaPartido({
           {fmt.format(votosPartido)}
         </td>
         <td className="px-3 py-2.5 text-right num-tabular text-foreground-muted">
-          {pct.toFixed(2)}%
+          {formatearPorcentaje(pct, 2)}
         </td>
         <td className="hidden px-3 py-2.5 sm:table-cell">
           <div
@@ -347,7 +355,7 @@ function CandidatosDePartido({
   if (isError) {
     return (
       <tr>
-        <td colSpan={5} className="bg-surface-sunken/40 px-12 py-3 text-xs text-danger">
+        <td colSpan={5} className="bg-surface-sunken/40 px-12 py-3 text-xs text-danger-foreground">
           Error al cargar candidatos del partido.
         </td>
       </tr>
@@ -385,9 +393,9 @@ function CandidatosDePartido({
                 <UserCheck size={12} className="shrink-0 text-foreground-subtle" aria-hidden />
                 <span
                   className="block max-w-[9rem] truncate text-foreground sm:max-w-[14rem] md:max-w-[20rem] lg:max-w-[22rem] xl:max-w-[26rem]"
-                  title={c.nombreCandidato}
+                  title={formatearNombrePersona(c.nombreCandidato)}
                 >
-                  {c.nombreCandidato}
+                  {formatearNombrePersona(c.nombreCandidato)}
                 </span>
               </div>
             </td>
@@ -395,7 +403,7 @@ function CandidatosDePartido({
               {fmt.format(c.totalVotos)}
             </td>
             <td className="px-3 py-2 text-right num-tabular text-foreground-muted">
-              {pct.toFixed(2)}%
+              {formatearPorcentaje(pct, 2)}
             </td>
             <td className="hidden px-3 py-2 sm:table-cell">
               <div

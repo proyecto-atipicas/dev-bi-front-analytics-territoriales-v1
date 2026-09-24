@@ -2,9 +2,11 @@
 
 import { ResumenCorporacion } from '@/modules/electoral/domain/entities';
 import { cn } from '@/shared/ui/utils/cn';
+import { formatearCorporacion } from './corporacion-utils';
 import {
   Award,
   Building2,
+  ChevronRight,
   Crown,
   Landmark,
   LucideIcon,
@@ -28,10 +30,10 @@ interface TonoConfig {
 
 const TONOS: Record<TonoCorporacion, TonoConfig> = {
   brand:   { text: 'text-brand',   headerBg: 'bg-brand-muted',   headerBorder: 'border-brand/30' },
-  success: { text: 'text-success', headerBg: 'bg-success-muted', headerBorder: 'border-success/30' },
-  danger:  { text: 'text-danger',  headerBg: 'bg-danger-muted',  headerBorder: 'border-danger/30' },
-  warning: { text: 'text-warning', headerBg: 'bg-warning-muted', headerBorder: 'border-warning/30' },
-  info:    { text: 'text-info',    headerBg: 'bg-info-muted',    headerBorder: 'border-info/30' },
+  success: { text: 'text-success-foreground', headerBg: 'bg-success-muted', headerBorder: 'border-success/30' },
+  danger:  { text: 'text-danger-foreground',  headerBg: 'bg-danger-muted',  headerBorder: 'border-danger/30' },
+  warning: { text: 'text-warning-foreground', headerBg: 'bg-warning-muted', headerBorder: 'border-warning/30' },
+  info:    { text: 'text-info-foreground',    headerBg: 'bg-info-muted',    headerBorder: 'border-info/30' },
   neutral: { text: 'text-foreground-muted', headerBg: 'bg-surface-elevated', headerBorder: 'border-border-strong' },
 };
 
@@ -56,85 +58,85 @@ export interface TarjetaCorporacionProps {
   resumen: ResumenCorporacion;
   seleccionada?: boolean;
   onClick?: () => void;
+  /**
+   * Muestra el tipo de elección sobre el título. Se omite cuando la tarjeta
+   * ya está bajo un encabezado de grupo con ese mismo tipo.
+   */
+  mostrarFamilia?: boolean;
 }
 
 export function TarjetaCorporacion({
   resumen,
   seleccionada = false,
   onClick,
+  mostrarFamilia = false,
 }: TarjetaCorporacionProps) {
   const { icon: Icon, tono } = visualParaCorporacion(resumen.nombreCorporacion);
   const t = TONOS[tono];
+  const nombre = formatearCorporacion(resumen.nombreCorporacion);
+  const titulo = nombre.detalle || nombre.familia;
 
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={seleccionada}
       className={cn(
-        'group block w-full overflow-hidden rounded-xl border border-border bg-surface text-left shadow-soft transition-all duration-200',
-        'hover:-translate-y-0.5 hover:border-border-strong hover:shadow-elevated',
-        seleccionada &&
-          'ring-2 ring-brand ring-offset-2 ring-offset-background border-brand',
+        'group flex w-full flex-col rounded-xl border bg-surface p-4 text-left shadow-panel transition-[border-color,box-shadow] duration-150 sm:p-5',
+        'hover:border-brand/50 hover:shadow-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        seleccionada ? 'border-brand ring-2 ring-brand/20' : 'border-border/80',
       )}
     >
-      {/* Header con título de la corporación */}
-      <header
-        className={cn(
-          'flex items-center justify-center gap-2 border-b px-4 py-2.5',
-          t.headerBg,
-          t.headerBorder,
-        )}
-      >
-        <Icon size={14} className={t.text} />
-        <h3
+      <div className="flex w-full items-start gap-3">
+        <span
           className={cn(
-            'truncate text-[11px] font-bold uppercase tracking-[0.14em]',
+            'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+            t.headerBg,
             t.text,
           )}
         >
-          {resumen.nombreCorporacion}
-        </h3>
-      </header>
-
-      {/* Número grande centrado */}
-      <div className="px-3 py-4 text-center sm:px-4 sm:py-5">
-        <p
-          className={cn(
-            'truncate text-2xl font-extrabold tabular-nums tracking-tight text-foreground sm:text-3xl',
-            'transition-transform duration-200 group-hover:scale-105',
+          <Icon size={17} aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          {mostrarFamilia && (
+            <p className="truncate text-xs text-foreground-muted">{nombre.familia}</p>
           )}
-        >
-          {fmt.format(resumen.totalVotos)}
-        </p>
-        <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground-muted">
-          Total votos
-        </p>
+          <h3 className="truncate text-[15px] font-semibold text-foreground" title={nombre.etiqueta}>
+            {titulo}
+          </h3>
+        </div>
+        {nombre.anio && (
+          <span className="shrink-0 rounded-md bg-background px-2 py-0.5 text-xs font-semibold tabular-nums text-foreground-muted ring-1 ring-inset ring-border">
+            {nombre.anio}
+          </span>
+        )}
       </div>
 
-      {/* Footer split: candidatos + partidos */}
-      <div className="grid grid-cols-2 divide-x divide-border border-t border-border bg-background/40">
-        <div className="flex items-center justify-center gap-2 px-3 py-3">
-          <UserCheck size={16} className={t.text} />
-          <div className="leading-tight">
-            <span className="block text-base font-bold tabular-nums text-foreground">
-              {fmt.format(resumen.totalCandidatos)}
-            </span>
-            <span className="block text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
-              Candidatos
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center justify-center gap-2 px-3 py-3">
-          <Award size={16} className={t.text} />
-          <div className="leading-tight">
-            <span className="block text-base font-bold tabular-nums text-foreground">
-              {fmt.format(resumen.totalPartidos)}
-            </span>
-            <span className="block text-[10px] font-medium uppercase tracking-wide text-foreground-muted">
-              Partidos
-            </span>
-          </div>
-        </div>
+      <p className="font-display mt-5 text-[28px] font-bold leading-none tabular-nums text-foreground">
+        {fmt.format(resumen.totalVotos)}
+      </p>
+      <p className="mt-1.5 text-xs text-foreground-muted">votos registrados</p>
+
+      <div className="mt-4 flex w-full items-center gap-4 border-t border-border/70 pt-3 text-xs text-foreground-muted">
+        <span className="inline-flex items-center gap-1.5">
+          <UserCheck size={14} className="text-foreground-subtle" aria-hidden />
+          <strong className="font-semibold tabular-nums text-foreground">
+            {fmt.format(resumen.totalCandidatos)}
+          </strong>
+          candidatos
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Award size={14} className="text-foreground-subtle" aria-hidden />
+          <strong className="font-semibold tabular-nums text-foreground">
+            {fmt.format(resumen.totalPartidos)}
+          </strong>
+          partidos
+        </span>
+        <ChevronRight
+          size={16}
+          className="ml-auto text-foreground-subtle transition-colors group-hover:text-brand"
+          aria-hidden
+        />
       </div>
     </button>
   );

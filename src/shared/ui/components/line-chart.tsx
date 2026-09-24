@@ -28,7 +28,8 @@ ChartJS.register(
 
 export interface LineDataset {
   label: string;
-  data: number[];
+  /** `null` = sin medición en ese periodo (se deja el hueco, no se pinta 0). */
+  data: (number | null)[];
   /** Texto cualitativo (observación) por punto, mismo orden que `data`. */
   observaciones?: Array<string | null | undefined>;
 }
@@ -41,6 +42,13 @@ export interface LineChartProps {
    * el sufijo de unidad (%, COP, …). Si se omite usa Intl.NumberFormat es-CO.
    */
   formatearValor?: (valor: number) => string;
+  /**
+   * Alto del área del gráfico (clases Tailwind). Si se indica, el componente
+   * gestiona su propio alto y, cuando hay muchas series o nombres largos,
+   * pinta la leyenda en HTML debajo: se ajusta en varias líneas en lugar de
+   * recortarse dentro del canvas.
+   */
+  claseAlto?: string;
 }
 
 const defaultFmt = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 });
@@ -64,12 +72,22 @@ function envolverTexto(texto: string, ancho: number): string[] {
   return lineas;
 }
 
-export function LineChart({ labels, datasets, formatearValor }: LineChartProps) {
+export function LineChart({ labels, datasets, formatearValor, claseAlto }: LineChartProps) {
   const isDark = useResolvedTheme() === 'dark';
   const p = getChartPalette(isDark);
   const fmt = formatearValor ?? ((v: number) => defaultFmt.format(v));
+  const leyendaHtml =
+    !!claseAlto && (datasets.length > 4 || datasets.some((d) => d.label.length > 24));
 
-  return (
+  // El eje se ajusta al rango de los datos con un 10 % de holgura, sin bajar
+  // de 0 cuando ningún valor es negativo (porcentajes, conteos).
+  const valores = datasets.flatMap((d) => d.data).filter((v): v is number => v != null);
+  const minimo = valores.length ? Math.min(...valores) : 0;
+  const maximo = valores.length ? Math.max(...valores) : 0;
+  const holgura = (maximo - minimo) * 0.1 || Math.abs(maximo) * 0.1 || 1;
+  const ejeMin = minimo >= 0 ? Math.max(0, minimo - holgura) : minimo - holgura;
+
+  const grafica = (
     <Line
       data={{
         labels,
@@ -81,6 +99,7 @@ export function LineChart({ labels, datasets, formatearValor }: LineChartProps) 
             borderColor: color,
             backgroundColor: color,
             tension: 0.35,
+            spanGaps: true,
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
@@ -93,6 +112,7 @@ export function LineChart({ labels, datasets, formatearValor }: LineChartProps) 
         interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: {
+            display: !leyendaHtml,
             position: 'bottom',
             labels: { color: p.text, font: { size: 11 }, usePointStyle: true, padding: 16 },
           },
@@ -128,7 +148,11 @@ export function LineChart({ labels, datasets, formatearValor }: LineChartProps) 
             border: { color: p.grid },
           },
           y: {
-            beginAtZero: true,
+            // Una línea compara cambios en el tiempo: no se ancla en 0, que
+            // aplanaba variaciones pequeñas como las del coeficiente de Gini.
+            beginAtZero: false,
+            suggestedMin: ejeMin,
+            suggestedMax: maximo + holgura,
             ticks: {
               color: p.text,
               font: { size: 11 },
@@ -140,5 +164,27 @@ export function LineChart({ labels, datasets, formatearValor }: LineChartProps) 
         },
       }}
     />
+  );
+
+  if (!claseAlto) return grafica;
+
+  return (
+    <div className="space-y-3">
+      <div className={claseAlto}>{grafica}</div>
+      {leyendaHtml && (
+        <ul className="flex flex-wrap gap-x-4 gap-y-1.5" aria-label="Leyenda">
+          {datasets.map((d, i) => (
+            <li key={d.label} className="flex min-w-0 items-center gap-1.5 text-[11px] text-foreground-muted">
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: p.series[i % p.series.length] }}
+                aria-hidden
+              />
+              <span>{d.label}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

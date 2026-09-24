@@ -24,22 +24,18 @@ export function SectionHeading({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-end justify-between gap-3 px-1',
+        'flex flex-wrap items-end justify-between gap-3',
         className,
       )}
     >
-      <div className="flex items-center gap-2.5 min-w-0">
-        {Icon && (
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-muted text-brand">
-            <Icon size={14} />
-          </span>
-        )}
+      <div className="flex min-w-0 items-start gap-2.5">
+        {Icon && <Icon size={20} className="mt-1 shrink-0 text-brand" aria-hidden />}
         <div className="min-w-0">
-          <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">
+          <h2 className="font-display truncate text-lg font-bold text-foreground">
             {title}
           </h2>
           {description && (
-            <p className="truncate text-xs text-foreground-muted">{description}</p>
+            <p className="mt-0.5 text-sm text-foreground-muted">{description}</p>
           )}
         </div>
       </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { formatearTerritorio } from '@/shared/ui/utils/formatear-territorio';
 import type {
   ComparativoTerritorialResultado,
   TerritorioComparativo,
@@ -8,9 +9,14 @@ import { cn } from '@/shared/ui/utils/cn';
 import { ChevronLeft, ChevronRight, Crown } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { COLOR_A, COLOR_B } from './colores-comparativo';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 const PAGE_SIZE = 10;
+// Si las filas apenas superan una página (p. ej. 11 de 10), se muestran
+// todas: una segunda página con una o dos filas sólo obliga a hacer clic.
+const porPaginaPara = (total: number) =>
+  total <= Math.ceil(PAGE_SIZE * 1.5) ? Math.max(total, 1) : PAGE_SIZE;
 
 export interface TablaResultadosTerritorialProps {
   resultado: ComparativoTerritorialResultado;
@@ -22,7 +28,8 @@ export function TablaResultadosTerritorial({
   encabezadoTerritorio,
 }: TablaResultadosTerritorialProps) {
   const filas = resultado.territorios;
-  const totalPaginas = Math.max(1, Math.ceil(filas.length / PAGE_SIZE));
+  const porPagina = porPaginaPara(filas.length);
+  const totalPaginas = Math.max(1, Math.ceil(filas.length / porPagina));
   const [pagina, setPagina] = useState(1);
 
   // Si cambian los filtros (cambia la lista o el conteo), volvemos a la pág. 1.
@@ -31,8 +38,8 @@ export function TablaResultadosTerritorial({
   }, [filas]);
 
   const paginaActual = Math.min(pagina, totalPaginas);
-  const inicio = (paginaActual - 1) * PAGE_SIZE;
-  const fin = Math.min(inicio + PAGE_SIZE, filas.length);
+  const inicio = (paginaActual - 1) * porPagina;
+  const fin = Math.min(inicio + porPagina, filas.length);
   const filasVisibles = useMemo(() => filas.slice(inicio, fin), [filas, inicio, fin]);
 
   return (
@@ -164,8 +171,8 @@ function FilaTerritorio({ t }: { t: TerritorioComparativo }) {
   return (
     <tr className="hover:bg-surface-elevated/60">
       <td className="px-4 py-2.5 font-medium text-foreground">
-        <span className="block max-w-[8rem] truncate sm:max-w-[12rem] lg:max-w-[16rem]" title={t.nombre}>
-          {t.nombre}
+        <span className="block max-w-[8rem] truncate sm:max-w-[12rem] lg:max-w-[16rem]" title={formatearTerritorio(t.nombre)}>
+          {formatearTerritorio(t.nombre)}
         </span>
       </td>
       <CeldaCandidato
@@ -184,7 +191,7 @@ function FilaTerritorio({ t }: { t: TerritorioComparativo }) {
         {fmt.format(t.diferencia)}
       </td>
       <td className="px-3 py-2.5 text-right text-foreground num-tabular">
-        {t.diferenciaPct.toFixed(1)}%
+        {formatearPorcentaje(t.diferenciaPct, 1)}
       </td>
       <td className="hidden px-4 py-2.5 sm:table-cell">
         <EtiquetaGanador ganador={t.ganador} />
@@ -213,7 +220,7 @@ function CeldaCandidato({
     >
       {fmt.format(votos)}
       <span className="ml-1 text-[10px] text-foreground-subtle">
-        ({participacionPct.toFixed(1)}%)
+        ({formatearPorcentaje(participacionPct, 1)})
       </span>
     </td>
   );

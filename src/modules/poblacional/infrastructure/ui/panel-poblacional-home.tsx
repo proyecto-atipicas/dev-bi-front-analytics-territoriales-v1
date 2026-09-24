@@ -7,6 +7,7 @@ import {
 import { GraficaAdaptativaPoblacional } from './grafica-adaptativa';
 import { EmptyState } from '@/shared/ui/components/empty-state';
 import { Skeleton } from '@/shared/ui/components/skeleton';
+import { SelectFiltro } from '@/shared/ui/components/select-filtro';
 import { cn } from '@/shared/ui/utils/cn';
 import {
   ChevronDown,
@@ -73,7 +74,7 @@ export function PanelPoblacionalHome() {
       {/* Panel izquierdo: dimensiones */}
       <aside className="lg:sticky lg:top-2 lg:max-h-[34rem] lg:self-start">
         <div className="rounded-xl border border-border bg-surface p-2 shadow-soft">
-          <p className="px-2 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+          <p className="px-2 pb-2 pt-1 text-xs font-medium text-foreground-muted">
             Dimensiones
           </p>
           {loadingResumen ? (
@@ -180,7 +181,6 @@ function Selector({
   options,
   loading,
   disabled,
-  icon: Icon,
   count,
   className,
 }: {
@@ -190,51 +190,22 @@ function Selector({
   options: { value: string; label: string }[];
   loading?: boolean;
   disabled?: boolean;
+  /** Conservado por compatibilidad; el control ya no muestra icono. */
   icon?: typeof Database;
   /** Contador opcional que aparece junto al título (ej. nº de opciones disponibles) */
   count?: number;
   className?: string;
 }) {
   return (
-    <label className={cn('flex flex-col gap-1', className)}>
-      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
-        {label}
-        {typeof count === 'number' && count > 0 && (
-          <span className="rounded-full bg-surface-elevated px-1.5 py-0.5 text-[10px] font-semibold text-foreground-muted">
-            {count}
-          </span>
-        )}
-      </span>
-      <div className="relative">
-        {Icon && (
-          <Icon
-            size={14}
-            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground-subtle"
-          />
-        )}
-        <select
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled || loading}
-          className={cn(
-            'h-9 w-full appearance-none rounded-lg border border-border bg-surface pr-8 text-sm text-foreground shadow-soft transition-colors',
-            Icon ? 'pl-8' : 'pl-3',
-            'focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20',
-            'disabled:cursor-not-allowed disabled:opacity-60',
-          )}
-        >
-          <option value="">{loading ? 'Cargando…' : 'Seleccione…'}</option>
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          size={14}
-          className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-foreground-subtle"
-        />
-      </div>
-    </label>
+    <SelectFiltro
+      label={typeof count === 'number' && count > 0 ? `${label} (${count})` : label}
+      value={value}
+      onChange={(v) => onChange(v ?? '')}
+      options={options}
+      loading={loading}
+      disabled={disabled}
+      placeholder="Seleccione…"
+      className={className}
+    />
   );
 }

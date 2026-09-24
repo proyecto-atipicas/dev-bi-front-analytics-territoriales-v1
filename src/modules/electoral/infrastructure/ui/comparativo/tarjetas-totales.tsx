@@ -9,6 +9,8 @@ import { Card, CardBody } from '@/shared/ui/components/card';
 import { cn } from '@/shared/ui/utils/cn';
 import { useMemo } from 'react';
 import { COLOR_A, COLOR_B } from './colores-comparativo';
+import { formatearCorporacion } from '../corporacion-utils';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 
@@ -22,7 +24,7 @@ export function TarjetasTotales({ resultado, etiquetaTerritorios }: TarjetasTota
   const { data: corporaciones } = useCorporaciones();
   const nombrePorCodigo = useMemo(() => {
     const m = new Map<string, string>();
-    for (const c of corporaciones ?? []) m.set(c.codigo, c.nombre);
+    for (const c of corporaciones ?? []) m.set(c.codigo, formatearCorporacion(c.nombre).etiqueta);
     return m;
   }, [corporaciones]);
 
@@ -63,7 +65,7 @@ function TarjetaItem({
     <Card className={cn('border-2', color.border)}>
       <CardBody className="space-y-4">
         <div>
-          <div className={cn('text-[11px] font-semibold uppercase tracking-wider', color.text)}>
+          <div className={cn('text-[11px] font-medium', color.text)}>
             {rotulo}
           </div>
           <div className="mt-1 text-base font-semibold text-foreground">
@@ -85,7 +87,7 @@ function TarjetaItem({
           <Kpi etiqueta="Total votos" valor={fmt.format(item.totalVotos)} acentoColor={color.text} />
           <Kpi
             etiqueta="% elección"
-            valor={`${item.participacionPct.toFixed(2)}%`}
+            valor={`${formatearPorcentaje(item.participacionPct, 2)}`}
             acentoColor={color.text}
           />
           <Kpi etiqueta={etiquetaTerritorios} valor={fmt.format(item.totalTerritorios)} />
@@ -109,7 +111,7 @@ function Kpi({
 }) {
   return (
     <div className="rounded-lg border border-border bg-surface-elevated/50 p-3">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <div className="text-xs font-medium text-foreground-muted">
         {etiqueta}
       </div>
       <div

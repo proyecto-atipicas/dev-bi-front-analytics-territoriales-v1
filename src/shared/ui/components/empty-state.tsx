@@ -6,20 +6,20 @@ export type EmptyStateTone = 'neutral' | 'danger' | 'info' | 'warning';
 
 const TONE_CLASSES: Record<EmptyStateTone, { wrap: string; icon: string }> = {
   neutral: {
-    wrap: 'border-dashed border-border bg-surface-sunken/60 text-foreground-muted',
+    wrap: 'border-dashed border-border-strong/70 bg-background/60 text-foreground-muted',
     icon: 'text-foreground-subtle',
   },
   danger: {
-    wrap: 'border-danger/30 bg-danger-muted/40 text-danger',
-    icon: 'text-danger',
+    wrap: 'border-danger/30 bg-danger-muted/40 text-danger-foreground',
+    icon: 'text-danger-foreground',
   },
   info: {
-    wrap: 'border-info/30 bg-info-muted/40 text-info',
-    icon: 'text-info',
+    wrap: 'border-info/30 bg-info-muted/40 text-info-foreground',
+    icon: 'text-info-foreground',
   },
   warning: {
-    wrap: 'border-warning/30 bg-warning-muted/40 text-warning',
-    icon: 'text-warning',
+    wrap: 'border-warning/30 bg-warning-muted/40 text-warning-foreground',
+    icon: 'text-warning-foreground',
   },
 };
 

@@ -27,6 +27,27 @@ export interface RadarChartProps {
   colors?: string[];
 }
 
+/** Parte una etiqueta en líneas de hasta `ancho` caracteres (máx. 3). */
+function envolver(texto: string, ancho = 18): string | string[] {
+  if (texto.length <= ancho) return texto;
+  const lineas: string[] = [];
+  let actual = '';
+  for (const p of texto.split(/\s+/)) {
+    if (!actual) actual = p;
+    else if (actual.length + 1 + p.length <= ancho) actual = `${actual} ${p}`;
+    else {
+      lineas.push(actual);
+      actual = p;
+    }
+  }
+  if (actual) lineas.push(actual);
+  if (lineas.length > 3) {
+    lineas.length = 3;
+    lineas[2] = `${lineas[2]}…`;
+  }
+  return lineas;
+}
+
 export function RadarChart({ labels, datasets, colors }: RadarChartProps) {
   const isDark = useResolvedTheme() === 'dark';
   const p = getChartPalette(isDark);
@@ -36,7 +57,7 @@ export function RadarChart({ labels, datasets, colors }: RadarChartProps) {
   return (
     <Radar
       data={{
-        labels,
+        labels: labels.map((l) => envolver(l)),
         datasets: datasets.map((d, i) => {
           const stroke = colors?.[i] ?? p.series[i % p.series.length];
           return {

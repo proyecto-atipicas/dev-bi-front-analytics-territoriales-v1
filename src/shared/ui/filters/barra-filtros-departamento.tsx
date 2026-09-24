@@ -3,7 +3,8 @@
 import { useDepartamentos } from '@/modules/geo/application/hooks';
 import { useFiltrosGlobales } from '@/shared/application/stores/filtros-globales.store';
 import { SelectFiltro } from '@/shared/ui/components/select-filtro';
-import { Filter, X } from 'lucide-react';
+import { formatearTerritorio } from '@/shared/ui/utils/formatear-territorio';
+import { X } from 'lucide-react';
 
 /**
  * Barra de filtros reducida para vistas que solo aceptan filtro por departamento
@@ -16,20 +17,16 @@ export function BarraFiltrosDepartamento() {
   const activo = !!codigoDepartamento;
 
   return (
-    <div className="border-b border-border bg-surface/95 px-4 py-3 backdrop-blur-sm sm:px-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="hidden shrink-0 items-center gap-1.5 self-end pb-2 text-[10px] font-semibold uppercase tracking-wider text-foreground-subtle sm:flex">
-          <Filter size={12} />
-          Filtros
-        </div>
-        <div className="grid flex-1 grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 md:gap-3">
+    <div className="px-4 pb-3 sm:px-6 lg:px-8" role="search" aria-label="Filtros de la vista">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+        <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <SelectFiltro
             label="Departamento"
             value={codigoDepartamento}
             loading={isLoading}
             options={(departamentos ?? []).map((d) => ({
               value: d.codigo,
-              label: d.nombre,
+              label: formatearTerritorio(d.nombre),
             }))}
             onChange={setDepartamento}
           />
@@ -38,11 +35,11 @@ export function BarraFiltrosDepartamento() {
           <button
             type="button"
             onClick={() => setDepartamento(null)}
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 self-start rounded-lg border border-border bg-surface px-3 text-xs font-medium text-foreground-muted transition-colors hover:border-danger/40 hover:bg-danger-muted/30 hover:text-danger sm:self-end"
-            aria-label="Limpiar filtro de departamento"
+            className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 self-start rounded-lg px-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger-muted/50 hover:text-danger-foreground sm:self-auto"
+            aria-label="Quitar filtro de departamento"
           >
-            <X size={13} />
-            Limpiar (1)
+            <X size={15} />
+            Quitar filtro
           </button>
         )}
       </div>

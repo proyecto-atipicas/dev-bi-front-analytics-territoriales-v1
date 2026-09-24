@@ -18,6 +18,8 @@ import {
   useFiltrosComparativo,
 } from './filtros-comparativo-store';
 import { COLOR_A, COLOR_B } from './colores-comparativo';
+import { formatearNombrePersona, formatearTerritorio } from '@/shared/ui/utils/formatear-territorio';
+import { formatearCorporacion } from '../corporacion-utils';
 
 /**
  * Codificación del `<option value>` de un candidato. Como `codigo_candidato`
@@ -115,7 +117,7 @@ function AmbitoTerritorial() {
 
   return (
     <div className="rounded-xl border border-border bg-surface-elevated/40 p-4">
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-foreground-muted">
         <MapPin size={12} />
         Ámbito territorial
       </div>
@@ -126,7 +128,7 @@ function AmbitoTerritorial() {
           loading={loadingDep}
           options={(departamentos ?? []).map((d) => ({
             value: d.codigo,
-            label: d.nombre,
+            label: formatearTerritorio(d.nombre),
           }))}
           onChange={setDepartamento}
         />
@@ -138,7 +140,7 @@ function AmbitoTerritorial() {
           placeholder={codigoDepartamento ? 'Todos' : 'Seleccione departamento'}
           options={(municipios ?? []).map((m) => ({
             value: m.codigo,
-            label: m.nombre,
+            label: formatearTerritorio(m.nombre),
           }))}
           onChange={setMunicipio}
         />
@@ -195,7 +197,7 @@ function TarjetaSelector({
           // El value codifica (codigo, codigoPartido) para enviar la tupla al backend;
           // el label sólo muestra el nombre del candidato — el partido se infiere del valor.
           value: encodeCandidato(c.codigo, c.codigoPartido),
-          label: c.nombre,
+          label: formatearNombrePersona(c.nombre),
         }));
 
   // Excluir la selección del otro lado SÓLO cuando ambos lados comparten
@@ -239,7 +241,7 @@ function TarjetaSelector({
 
   return (
     <div className={cn('rounded-xl border bg-surface p-4', color.border, color.bg)}>
-      <div className={cn('text-[11px] font-semibold uppercase tracking-wider', color.text)}>
+      <div className={cn('text-[11px] font-medium', color.text)}>
         {etiqueta}
       </div>
       <div className="mt-3 space-y-3">
@@ -249,7 +251,7 @@ function TarjetaSelector({
           loading={loadingCorp}
           options={(corporaciones ?? []).map((c) => ({
             value: c.codigo,
-            label: c.nombre,
+            label: formatearCorporacion(c.nombre).etiqueta,
           }))}
           onChange={onChangeCorp}
           placeholder="Seleccione…"

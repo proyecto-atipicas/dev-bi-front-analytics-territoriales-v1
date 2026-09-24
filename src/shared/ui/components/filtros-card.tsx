@@ -38,10 +38,10 @@ export function FiltrosCard({
 }: FiltrosCardProps) {
   return (
     <Card className={cn(className)}>
-      <div className="flex flex-wrap items-end gap-3 px-4 py-3.5">
+      <div className="flex flex-wrap items-center gap-2 p-3">
         <div
           className={cn(
-            'grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2',
+            'grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2',
             COL_GRID[cols],
           )}
         >
@@ -51,11 +51,14 @@ export function FiltrosCard({
           <button
             type="button"
             onClick={onLimpiar}
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-foreground-muted transition-colors hover:border-danger/40 hover:bg-danger-muted/30 hover:text-danger"
-            aria-label="Limpiar filtros"
+            className="inline-flex h-12 shrink-0 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger-muted/50 hover:text-danger-foreground"
+            aria-label={`Quitar ${filtrosActivos} ${filtrosActivos === 1 ? 'filtro' : 'filtros'}`}
           >
-            <X size={13} />
-            Limpiar ({filtrosActivos})
+            <X size={15} />
+            Quitar filtros
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-semibold text-brand-foreground">
+              {filtrosActivos}
+            </span>
           </button>
         )}
       </div>

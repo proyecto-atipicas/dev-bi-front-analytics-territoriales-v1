@@ -31,3 +31,14 @@ export function MapaColombia() {
     </div>
   );
 }
+
+/**
+ * Instrucción del mapa según el nivel en que está: el mismo texto fijo
+ * ("toque un departamento") no servía una vez dentro de un departamento.
+ */
+export function useDescripcionMapa(): string {
+  const codigoDepartamento = useFiltrosGlobales((s) => s.codigoDepartamento);
+  return codigoDepartamento
+    ? 'Toque un municipio para ver sus puestos de votación'
+    : 'Toque un departamento para ver sus municipios';
+}

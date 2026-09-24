@@ -86,11 +86,12 @@ export function useRankingPartidos(limite = 20) {
   });
 }
 
-export function useRankingCandidatos(limite = 50) {
+export function useRankingCandidatos(limite = 50, options?: { enabled?: boolean }) {
   const dto = useFiltroElectoralDto();
   return useQuery({
     queryKey: ['electoral', 'ranking-candidatos', dto, limite],
     queryFn: () => electoralUseCases.obtenerRankingCandidatos.execute(dto, limite),
+    enabled: options?.enabled ?? true,
   });
 }
 

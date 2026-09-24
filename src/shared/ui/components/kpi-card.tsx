@@ -1,15 +1,16 @@
 import { cn } from '@/shared/ui/utils/cn';
 import { ArrowDownRight, ArrowUpRight, LucideIcon, Minus } from 'lucide-react';
 import { ReactNode } from 'react';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 export type KpiTone = 'brand' | 'success' | 'danger' | 'warning' | 'info' | 'neutral';
 
 const TONE_STYLES: Record<KpiTone, string> = {
   brand: 'bg-brand-muted text-brand',
-  success: 'bg-success-muted text-success',
-  danger: 'bg-danger-muted text-danger',
-  warning: 'bg-warning-muted text-warning',
-  info: 'bg-info-muted text-info',
+  success: 'bg-success-muted text-success-foreground',
+  danger: 'bg-danger-muted text-danger-foreground',
+  warning: 'bg-warning-muted text-warning-foreground',
+  info: 'bg-info-muted text-info-foreground',
   neutral: 'bg-surface-elevated text-foreground-muted',
 };
 
@@ -43,16 +44,16 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-xl border border-border bg-surface p-4 shadow-soft transition-all duration-200 hover:border-border-strong hover:shadow-elevated sm:p-5',
+        'relative overflow-hidden rounded-xl border border-border/80 bg-surface p-4 shadow-panel sm:p-5',
         className,
       )}
     >
       <div className="flex items-start justify-between gap-2 sm:gap-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
+          <p className="truncate text-xs font-medium text-foreground-muted">
             {label}
           </p>
-          <p className="mt-2 truncate text-xl font-semibold tracking-tight text-foreground sm:mt-2.5 sm:text-2xl">
+          <p className="font-display mt-2 truncate text-2xl font-bold tabular-nums text-foreground sm:text-[28px] sm:leading-9">
             {value}
           </p>
           {hint && (
@@ -62,12 +63,11 @@ export function KpiCard({
         {Icon && (
           <div
             className={cn(
-              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 sm:h-9 sm:w-9',
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
               TONE_STYLES[tone],
             )}
           >
-            <Icon size={16} className="sm:hidden" />
-            <Icon size={18} className="hidden sm:block" />
+            <Icon size={16} />
           </div>
         )}
       </div>
@@ -77,8 +77,8 @@ export function KpiCard({
           <span
             className={cn(
               'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold',
-              trendIsUp && 'bg-success-muted text-success',
-              trendIsDown && 'bg-danger-muted text-danger',
+              trendIsUp && 'bg-success-muted text-success-foreground',
+              trendIsDown && 'bg-danger-muted text-danger-foreground',
               !trendIsUp && !trendIsDown && 'bg-surface-elevated text-foreground-muted',
             )}
           >
@@ -89,7 +89,7 @@ export function KpiCard({
             ) : (
               <Minus size={12} />
             )}
-            {Math.abs(trendPct ?? 0).toFixed(1)}%
+            {formatearPorcentaje(Math.abs(trendPct ?? 0), 1)}
           </span>
           {trendLabel && (
             <span className="text-[11px] text-foreground-subtle">{trendLabel}</span>

@@ -12,17 +12,26 @@ import { CardBody, CardHeader } from '@/shared/ui/components/card';
 import { EmptyState } from '@/shared/ui/components/empty-state';
 import { Skeleton } from '@/shared/ui/components/skeleton';
 import { cn } from '@/shared/ui/utils/cn';
+import { formatearTerritorio } from '@/shared/ui/utils/formatear-territorio';
 import { Building, Globe2, MapPin, Target, Trophy } from 'lucide-react';
 import { useMemo } from 'react';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 
 /**
+ * Filas de cada top (departamentos, municipios, puestos). Se muestran
+ * completas, sin contenedor con scroll, para que el ranking se lea de un
+ * vistazo.
+ */
+const TOP = 13;
+
+/**
  * Panel territorial adaptativo (vista Comportamiento Electoral).
  *
- * - Sin departamento     → Top 10 departamentos por votos + % de participación.
- * - Con departamento     → Top municipios del departamento + % vs el total del depto.
- * - Con municipio        → Detalle de puestos de votación + radiales con la
+ * - Sin departamento     → Top 13 departamentos por votos + % de participación.
+ * - Con departamento     → Top 13 municipios del departamento + % vs el total del depto.
+ * - Con municipio        → Top 13 puestos de votación + radiales con la
  *                          participación del municipio frente al departamento
  *                          y al total nacional.
  */
@@ -38,7 +47,7 @@ export function PanelTerritorialComportamiento() {
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Top 10 departamentos
+// Top departamentos
 // ─────────────────────────────────────────────────────────────────────
 
 function PanelDepartamentos() {
@@ -48,10 +57,10 @@ function PanelDepartamentos() {
     const total = (data ?? []).reduce((acc, d) => acc + d.totalVotos, 0);
     return [...(data ?? [])]
       .sort((a, b) => b.totalVotos - a.totalVotos)
-      .slice(0, 10)
+      .slice(0, TOP)
       .map((d) => ({
         id: d.codigoDepartamento,
-        nombre: d.nombreDepartamento,
+        nombre: formatearTerritorio(d.nombreDepartamento),
         votos: d.totalVotos,
         pct: total > 0 ? (d.totalVotos / total) * 100 : 0,
       }));
@@ -60,7 +69,7 @@ function PanelDepartamentos() {
   return (
     <>
       <CardHeader
-        title="Top 10 departamentos"
+        title={`Top ${TOP} departamentos`}
         description="Total de votos y % de participación"
         icon={Trophy}
       />
@@ -85,19 +94,19 @@ function PanelMunicipios() {
   const { data, isLoading, isError } = useVotosPorMunicipio();
   const { data: departamentos } = useDepartamentos();
 
-  const nombreDepartamento = useMemo(
-    () => departamentos?.find((d) => d.codigo === codigoDepartamento)?.nombre,
-    [departamentos, codigoDepartamento],
-  );
+  const nombreDepartamento = useMemo(() => {
+    const n = departamentos?.find((d) => d.codigo === codigoDepartamento)?.nombre;
+    return n ? formatearTerritorio(n) : undefined;
+  }, [departamentos, codigoDepartamento]);
 
   const filas = useMemo(() => {
     const total = (data ?? []).reduce((acc, m) => acc + m.totalVotos, 0);
     return [...(data ?? [])]
       .sort((a, b) => b.totalVotos - a.totalVotos)
-      .slice(0, 10)
+      .slice(0, TOP)
       .map((m) => ({
         id: `${m.codigoDepartamento}-${m.codigoMunicipio}`,
-        nombre: m.nombreMunicipio,
+        nombre: formatearTerritorio(m.nombreMunicipio),
         votos: m.totalVotos,
         pct: total > 0 ? (m.totalVotos / total) * 100 : 0,
       }));
@@ -106,7 +115,7 @@ function PanelMunicipios() {
   return (
     <>
       <CardHeader
-        title="Top municipios"
+        title={`Top ${TOP} municipios`}
         description={
           nombreDepartamento
             ? `Distribución dentro de ${nombreDepartamento}`
@@ -157,14 +166,14 @@ function PanelDetalleMunicipio() {
   const { data: departamentos } = useDepartamentos();
   const { data: municipios } = useMunicipios(codigoDepartamento);
 
-  const nombreDepartamento = useMemo(
-    () => departamentos?.find((d) => d.codigo === codigoDepartamento)?.nombre,
-    [departamentos, codigoDepartamento],
-  );
-  const nombreMunicipio = useMemo(
-    () => municipios?.find((m) => m.codigo === codigoMunicipio)?.nombre,
-    [municipios, codigoMunicipio],
-  );
+  const nombreDepartamento = useMemo(() => {
+    const n = departamentos?.find((d) => d.codigo === codigoDepartamento)?.nombre;
+    return n ? formatearTerritorio(n) : undefined;
+  }, [departamentos, codigoDepartamento]);
+  const nombreMunicipio = useMemo(() => {
+    const n = municipios?.find((m) => m.codigo === codigoMunicipio)?.nombre;
+    return n ? formatearTerritorio(n) : undefined;
+  }, [municipios, codigoMunicipio]);
 
   const votosMunicipio = resumenMunicipio?.totalVotos ?? 0;
   const votosDepartamento = resumenDepartamento?.totalVotos ?? 0;
@@ -173,9 +182,11 @@ function PanelDetalleMunicipio() {
     votosDepartamento > 0 ? (votosMunicipio / votosDepartamento) * 100 : 0;
   const pctNacional = votosNacionales > 0 ? (votosMunicipio / votosNacionales) * 100 : 0;
 
+  const totalPuestos = puestos?.length ?? 0;
   const filasPuestos = useMemo(() => {
     return [...(puestos ?? [])]
       .sort((a, b) => b.totalVotos - a.totalVotos)
+      .slice(0, TOP)
       .map((p) => ({
         id: `${p.codigoDepartamento}-${p.codigoMunicipio}-${p.codigoPuesto}`,
         nombre: p.nombrePuesto,
@@ -187,7 +198,7 @@ function PanelDetalleMunicipio() {
   return (
     <>
       <CardHeader
-        title={nombreMunicipio ? `${nombreMunicipio} · puestos` : 'Puestos de votación'}
+        title={nombreMunicipio ? `Puestos de votación en ${nombreMunicipio}` : 'Puestos de votación'}
         description={
           nombreDepartamento ? `Detalle dentro de ${nombreDepartamento}` : 'Detalle del municipio'
         }
@@ -215,11 +226,13 @@ function PanelDetalleMunicipio() {
 
         <div className="rounded-lg border border-border">
           <div className="flex items-center justify-between border-b border-border px-3 py-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground-muted">
-              Puestos de votación
+            <p className="text-[11px] font-medium text-foreground-muted">
+              Top {TOP} puestos de votación
             </p>
             <p className="num-tabular text-[11px] text-foreground-subtle">
-              {filasPuestos.length} {filasPuestos.length === 1 ? 'puesto' : 'puestos'}
+              {totalPuestos > filasPuestos.length
+                ? `${filasPuestos.length} de ${fmt.format(totalPuestos)} puestos`
+                : `${totalPuestos} ${totalPuestos === 1 ? 'puesto' : 'puestos'}`}
             </p>
           </div>
           <ListaParticipacion
@@ -227,7 +240,6 @@ function PanelDetalleMunicipio() {
             isLoading={loadingPuestos}
             isError={errorPuestos}
             emptyText="Sin información de puestos para este municipio."
-            maxHeight="max-h-[18rem]"
           />
         </div>
       </CardBody>
@@ -251,7 +263,6 @@ interface ListaParticipacionProps {
   isLoading: boolean;
   isError: boolean;
   emptyText: string;
-  maxHeight?: string;
 }
 
 function ListaParticipacion({
@@ -259,7 +270,6 @@ function ListaParticipacion({
   isLoading,
   isError,
   emptyText,
-  maxHeight,
 }: ListaParticipacionProps) {
   if (isLoading) {
     return (
@@ -290,15 +300,15 @@ function ListaParticipacion({
   const max = filas[0]?.pct ?? 0;
 
   return (
-    <div className={cn('overflow-y-auto', maxHeight)}>
+    <div>
       <table className="w-full text-xs">
-        <thead className="sticky top-0 z-10 border-b border-border bg-surface-elevated/90 backdrop-blur text-left label-eyebrow">
+        <thead className="border-b border-border bg-surface-elevated/90 text-left label-eyebrow">
           <tr>
             <th className="w-9 px-3 py-2">#</th>
             <th className="px-3 py-2">Nombre</th>
             <th className="px-3 py-2 text-right">Votos</th>
             <th className="px-3 py-2 text-right">%</th>
-            <th className="hidden px-3 py-2 min-w-[6rem] sm:table-cell">Participación</th>
+            <th className="hidden w-24 px-3 py-2 sm:table-cell xl:w-28">Participación</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
@@ -307,16 +317,18 @@ function ListaParticipacion({
             return (
               <tr key={f.id} className="transition-colors hover:bg-surface-elevated/50">
                 <td className="px-3 py-2 num-tabular text-foreground-subtle">{idx + 1}</td>
-                <td className="px-3 py-2 font-medium text-foreground">
-                  <span className="block max-w-[8rem] truncate sm:max-w-[14rem] md:max-w-[18rem] lg:max-w-[14rem] xl:max-w-[16rem]" title={f.nombre}>
+                {/* max-w-0 + w-full: la columna toma el ancho sobrante y el
+                    nombre ocupa hasta dos líneas, sin desbordar la tarjeta. */}
+                <td className="w-full max-w-0 px-3 py-2 font-medium text-foreground">
+                  <span className="line-clamp-2" title={f.nombre}>
                     {f.nombre}
                   </span>
                 </td>
-                <td className="px-3 py-2 text-right num-tabular text-foreground">
+                <td className="whitespace-nowrap px-3 py-2 text-right num-tabular text-foreground">
                   {fmt.format(f.votos)}
                 </td>
-                <td className="px-3 py-2 text-right num-tabular text-foreground-muted">
-                  {f.pct.toFixed(2)}%
+                <td className="whitespace-nowrap px-3 py-2 text-right num-tabular text-foreground-muted">
+                  {formatearPorcentaje(f.pct, 2)}
                 </td>
                 <td className="hidden px-3 py-2 sm:table-cell">
                   <div
@@ -345,7 +357,7 @@ type Tono = 'brand' | 'info';
 
 const TONO_CLASSES: Record<Tono, { stroke: string; pill: string }> = {
   brand: { stroke: 'text-brand', pill: 'bg-brand-muted text-brand' },
-  info: { stroke: 'text-info', pill: 'bg-info-muted text-info' },
+  info: { stroke: 'text-info', pill: 'bg-info-muted text-info-foreground' },
 };
 
 interface ParticipacionRadialProps {
@@ -405,7 +417,7 @@ function ParticipacionRadial({
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="num-tabular text-[11px] font-bold tracking-tight text-foreground">
-            {pct >= 10 ? pct.toFixed(1) : pct.toFixed(2)}%
+            {formatearPorcentaje(pct, pct >= 10 ? 1 : 2)}
           </span>
         </div>
       </div>
@@ -419,7 +431,7 @@ function ParticipacionRadial({
           >
             <Icono size={10} />
           </span>
-          <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-foreground-muted">
+          <p className="truncate text-xs font-medium text-foreground-muted">
             {etiqueta}
           </p>
         </div>

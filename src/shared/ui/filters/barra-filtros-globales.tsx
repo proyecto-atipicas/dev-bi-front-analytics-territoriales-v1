@@ -4,7 +4,9 @@ import { useCorporaciones, usePartidos } from '@/modules/catalogos/application/h
 import { useDepartamentos, useMunicipios } from '@/modules/geo/application/hooks';
 import { useFiltrosGlobales } from '@/shared/application/stores/filtros-globales.store';
 import { SelectFiltro } from '@/shared/ui/components/select-filtro';
-import { Filter, X } from 'lucide-react';
+import { formatearTerritorio } from '@/shared/ui/utils/formatear-territorio';
+import { formatearCorporacion } from '@/modules/electoral/infrastructure/ui/corporacion-utils';
+import { X } from 'lucide-react';
 
 export interface BarraFiltrosGlobalesProps {
   /** Oculta el selector de partido (vista comparativo electoral). */
@@ -62,28 +64,30 @@ export function BarraFiltrosGlobales({
 
   const visibles =
     1 + (mostrarDepto ? 1 : 0) + (mostrarMuni ? 1 : 0) + (!ocultarPartido ? 1 : 0);
+  // La corporación tiene los nombres más largos ("Presidencia, primera
+  // vuelta 2022"): recibe más ancho para no cortarse. Con cuatro filtros la
+  // fila única sólo cabe desde xl; antes se reparten en 2×2.
   const gridClass =
     visibles === 4
-      ? 'grid flex-1 grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3'
+      ? 'grid flex-1 grid-cols-2 gap-2 xl:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))]'
       : visibles === 3
-        ? 'grid flex-1 grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3'
-        : 'grid flex-1 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3';
+        ? 'grid flex-1 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,1fr))]'
+        : 'grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2 xl:max-w-3xl';
 
   return (
-    <div className="border-b border-border bg-surface/95 px-4 py-3 backdrop-blur-sm sm:px-6">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-end">
-        <div className="hidden shrink-0 items-center gap-1.5 self-end pb-2 text-[10px] font-semibold uppercase tracking-wider text-foreground-subtle xl:flex">
-          <Filter size={12} />
-          Filtros
-        </div>
+    <div className="px-4 pb-3 sm:px-6 lg:px-8" role="search" aria-label="Filtros de la vista">
+      <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center">
         <div className={gridClass}>
+          {/* En móvil (2 columnas) corporación y partido ocupan la fila
+              completa: sus nombres son los más largos. */}
           <SelectFiltro
             label="Corporación"
+            className={visibles === 4 ? 'col-span-2 sm:col-span-1' : undefined}
             value={filtros.codigoCorporacion}
             loading={loadingCorp}
             options={(corporaciones ?? []).map((c) => ({
               value: c.codigo,
-              label: c.nombre,
+              label: formatearCorporacion(c.nombre).etiqueta,
             }))}
             onChange={(v) => {
               filtros.setCorporacion(v);
@@ -97,7 +101,7 @@ export function BarraFiltrosGlobales({
               loading={loadingDep}
               options={(departamentos ?? []).map((d) => ({
                 value: d.codigo,
-                label: d.nombre,
+                label: formatearTerritorio(d.nombre),
               }))}
               onChange={filtros.setDepartamento}
             />
@@ -113,7 +117,7 @@ export function BarraFiltrosGlobales({
               }
               options={(municipios ?? []).map((m) => ({
                 value: m.codigo,
-                label: m.nombre,
+                label: formatearTerritorio(m.nombre),
               }))}
               onChange={filtros.setMunicipio}
             />
@@ -121,8 +125,11 @@ export function BarraFiltrosGlobales({
           {!ocultarPartido && (
             <SelectFiltro
               label={ocultarTerritorio ? 'Organización política' : 'Partido'}
+              className={visibles === 4 ? 'col-span-2 sm:col-span-1' : undefined}
               value={filtros.codigoPartido}
-              loading={loadingPart}
+              loading={loadingPart && !!filtros.codigoCorporacion}
+              disabled={!filtros.codigoCorporacion}
+              placeholder={filtros.codigoCorporacion ? 'Todos' : 'Elija una corporación'}
               options={(partidos ?? []).map((p) => ({
                 value: p.codigo,
                 label: p.nombre,
@@ -135,11 +142,14 @@ export function BarraFiltrosGlobales({
           <button
             type="button"
             onClick={limpiar}
-            className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 self-end rounded-lg border border-border bg-surface px-3 text-xs font-medium text-foreground-muted transition-colors hover:border-danger/40 hover:bg-danger-muted/30 hover:text-danger"
-            aria-label="Limpiar filtros globales"
+            className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 self-end rounded-lg px-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger-muted/50 hover:text-danger-foreground lg:self-auto"
+            aria-label={`Quitar ${activos} ${activos === 1 ? 'filtro' : 'filtros'}`}
           >
-            <X size={13} />
-            Limpiar ({activos})
+            <X size={15} />
+            Quitar filtros
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-semibold text-brand-foreground">
+              {activos}
+            </span>
           </button>
         )}
       </div>

@@ -13,6 +13,7 @@ import {
   SeleccionTerritoriosGanados,
   useFiltrosTerritoriosGanados,
 } from './filtros-territorios-ganados-store';
+import { formatearNombrePersona } from '@/shared/ui/utils/formatear-territorio';
 
 /**
  * Codificación del `<option value>` para candidatos: `codigo_candidato` se
@@ -54,7 +55,7 @@ export function PanelSeleccionTerritorios() {
       <CardBody>
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
           <div className="flex shrink-0 flex-col gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <span className="text-xs font-medium text-foreground-muted">
               Tipo de análisis
             </span>
             <div className="inline-flex w-fit rounded-lg border border-border bg-surface-elevated p-0.5">
@@ -152,7 +153,7 @@ function SelectorCandidato({
 
   const opciones = (candidatos ?? []).map((c) => ({
     value: encodeCandidato(c.codigo, c.codigoPartido),
-    label: c.nombre,
+    label: formatearNombrePersona(c.nombre),
   }));
 
   const valueEncoded = value ? encodeCandidato(value.codigo, value.codigoPartido) : null;

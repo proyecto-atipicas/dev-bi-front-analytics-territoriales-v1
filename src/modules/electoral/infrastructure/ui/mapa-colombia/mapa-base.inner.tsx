@@ -94,14 +94,43 @@ function colorScale(valor: number, max: number, isDark: boolean): string {
  */
 function FitBoundsToData({ features }: { features: Feature[] }) {
   const map = useMap();
+  // El archipiélago de San Andrés (≈81,7° O) queda lejos del territorio
+  // continental (cuyo extremo occidental está en ≈79° O): si entra en el
+  // encuadre, Colombia se ve diminuta. Se excluye del ajuste salvo que sea
+  // lo único visible (drill-down al propio departamento).
+  const bounds = useMemo(() => {
+    if (features.length === 0) return null;
+    const continentales = features.filter((f) => {
+      const b = L.geoJSON(f as Feature).getBounds();
+      return !b.isValid() || b.getCenter().lng > -79.5;
+    });
+    const encuadre = continentales.length > 0 ? continentales : features;
+    const b = L.geoJSON({ type: 'FeatureCollection', features: encuadre } as FeatureCollection).getBounds();
+    return b.isValid() ? b : null;
+  }, [features]);
+
   useEffect(() => {
-    if (features.length === 0) return;
-    const layer = L.geoJSON({ type: 'FeatureCollection', features } as FeatureCollection);
-    const bounds = layer.getBounds();
-    if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [20, 20] });
-    }
-  }, [features, map]);
+    if (!bounds) return;
+    const ajustar = () => map.fitBounds(bounds, { padding: [16, 16], animate: false });
+    ajustar();
+    // El contenedor puede crecer después del montaje (p. ej. al estirarse
+    // para igualar la altura de un panel vecino que termina de cargar):
+    // Leaflet sólo escucha la ventana, así que se recalcula aquí, una vez
+    // por frame aunque el observador dispare varias veces seguidas.
+    let frame = 0;
+    const obs = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        map.invalidateSize({ animate: false });
+        ajustar();
+      });
+    });
+    obs.observe(map.getContainer());
+    return () => {
+      cancelAnimationFrame(frame);
+      obs.disconnect();
+    };
+  }, [bounds, map]);
   return null;
 }
 
@@ -189,7 +218,7 @@ export function MapaBaseInner({
           : isDark
             ? 'rgb(84, 99, 140)'
             : 'rgb(200, 209, 226)',
-        fillOpacity: seleccionado ? 1 : 0.85,
+        fillOpacity: seleccionado ? 1 : 0.9,
       };
     },
     [
@@ -246,7 +275,7 @@ export function MapaBaseInner({
 
   if (error) {
     return (
-      <div className="flex h-full min-h-[240px] items-center justify-center rounded-md border border-warning/30 bg-warning-muted/40 p-4 text-sm text-warning">
+      <div className="flex h-full min-h-[240px] items-center justify-center rounded-md border border-warning/30 bg-warning-muted/40 p-4 text-sm text-warning-foreground">
         <div>
           <strong>Mapa no disponible:</strong> {error}
           <p className="mt-1 text-xs opacity-80">
@@ -269,7 +298,7 @@ export function MapaBaseInner({
       zoom={zoomDefault}
       minZoom={4}
       maxZoom={11}
-      style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
+      style={{ height: '100%', width: '100%' }}
       // Zoom 100% controlado: el mapa sólo cambia de escala vía
       // FitBoundsToData (filtros + clics). Cualquier gesto/atajo manual
       // está deshabilitado para evitar saltos confusos de viewport.
@@ -280,15 +309,25 @@ export function MapaBaseInner({
       keyboard={false}
       zoomControl={false}
       zoomSnap={0.25}
+      // Sin animación de zoom: Leaflet descarta cualquier fitBounds que llegue
+      // mientras anima, así que un reajuste por cambio de tamaño se perdía y
+      // Colombia quedaba diminuta. También evita el error `_leaflet_pos` al
+      // desmontar capas a mitad de animación.
+      zoomAnimation={false}
+      markerZoomAnimation={false}
     >
+      {/* Lienzo gris de Esri (sin etiquetas): sin API key y con contraste
+          bajo para que el coroplético sea lo único que "habla". CARTO pasó
+          a exigir clave y marcaba las teselas con una marca de agua. */}
       <TileLayer
         key={isDark ? 'dark' : 'light'}
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        attribution="Teselas &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap"
         url={
           isDark
-            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+            ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+            : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
         }
+        maxNativeZoom={16}
       />
       {features.length > 0 && (
         <>

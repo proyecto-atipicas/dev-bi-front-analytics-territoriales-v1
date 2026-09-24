@@ -3,6 +3,7 @@
 import { EmptyState } from '@/shared/ui/components/empty-state';
 import { Skeleton } from '@/shared/ui/components/skeleton';
 import { useRankingPartidos, useResumenElectoral } from '../../application/hooks';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 
@@ -59,11 +60,11 @@ export function TablaRankingPartidos({ limite = 10 }: TablaRankingPartidosProps)
                 key={p.codigoPartido}
                 className="transition-colors hover:bg-surface-elevated/60"
               >
-                <td className="px-4 py-2.5 font-medium text-foreground">
-                  <span
-                    className="block max-w-[10rem] truncate sm:max-w-[16rem] md:max-w-[22rem] lg:max-w-[18rem] xl:max-w-[22rem]"
-                    title={p.nombrePartido}
-                  >
+                {/* La columna del nombre toma el ancho sobrante y admite dos
+                    líneas: los nombres oficiales son largos y cortarlos a una
+                    sola línea escondía justo la parte que los distingue. */}
+                <td className="w-full max-w-0 px-4 py-2.5 font-medium text-foreground">
+                  <span className="line-clamp-2 break-words" title={p.nombrePartido}>
                     {p.nombrePartido}
                   </span>
                 </td>
@@ -71,7 +72,7 @@ export function TablaRankingPartidos({ limite = 10 }: TablaRankingPartidosProps)
                   {fmt.format(p.totalVotos)}
                 </td>
                 <td className="px-3 py-2.5 text-right num-tabular text-foreground-muted">
-                  {pct.toFixed(2)}%
+                  {formatearPorcentaje(pct, 2)}
                 </td>
                 <td className="hidden px-4 py-2.5 sm:table-cell">
                   <div

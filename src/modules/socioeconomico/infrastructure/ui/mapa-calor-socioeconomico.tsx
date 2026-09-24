@@ -292,7 +292,7 @@ export function MapaCalorSocioeconomico({
       ) : (
         nivelesPresentes.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+            <span className="text-xs font-medium text-foreground-muted">
               Nivel de riesgo:
             </span>
             {nivelesPresentes.map((c) => (
@@ -351,7 +351,7 @@ function LeyendaGradiente({
   const sufijo = sufijoUnidad(unidad);
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground-muted">
+      <span className="text-xs font-medium text-foreground-muted">
         Escala{sufijo ? ` (${sufijo})` : unidad ? ` (${unidad})` : ''}:
       </span>
       <div className="flex items-center gap-1.5">

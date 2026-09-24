@@ -19,7 +19,7 @@ export function BotonVolverPais({
     <button
       type="button"
       onClick={onClick}
-      className="absolute right-3 top-3 z-[500] inline-flex items-center gap-1.5 rounded-md border border-brand/40 bg-surface/95 px-3 py-1.5 text-xs font-semibold text-brand shadow-soft backdrop-blur transition hover:border-brand hover:bg-brand-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+      className="absolute right-3 top-3 z-[500] inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-brand-foreground shadow-elevated transition-colors hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       title={label}
       aria-label={label}
     >

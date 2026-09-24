@@ -23,7 +23,7 @@ export function PageHeader({
       {!hideBreadcrumbs && <Breadcrumbs />}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+          <h1 className="font-display truncate text-lg font-bold text-foreground sm:text-xl">
             {title}
           </h1>
           {description && (
