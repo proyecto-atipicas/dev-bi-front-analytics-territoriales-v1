@@ -7,6 +7,8 @@ import type {
 import { cn } from '@/shared/ui/utils/cn';
 import { Crown, TrendingUp } from 'lucide-react';
 import { COLOR_A, COLOR_B } from './colores-comparativo';
+import { formatearTerritorio } from '@/shared/ui/utils/formatear-territorio';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 
@@ -187,11 +189,11 @@ function ListaMargenes({
             className="flex items-center justify-between gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs"
           >
             <span className="min-w-0 truncate font-medium text-foreground">
-              {t.nombre}
+              {formatearTerritorio(t.nombre)}
             </span>
             <span className={cn('shrink-0 font-semibold num-tabular', color.text)}>
               {t.diferenciaPct >= 0 ? '+' : ''}
-              {t.diferenciaPct.toFixed(1)}%
+              {formatearPorcentaje(t.diferenciaPct, 1)}
               <span className="ml-1 text-[10px] text-foreground-subtle">
                 ({fmt.format(t.diferencia)})
               </span>

@@ -23,14 +23,22 @@ function formatFecha(iso: string | null): string {
 function badgeTipificacion(tipificacion: string): string {
   const t = tipificacion.toLowerCase();
   const base =
-    'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide';
+    'inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold';
   if (t.includes('socio')) {
-    return cn(base, 'bg-info-muted/60 text-info');
+    return cn(base, 'bg-info-muted/60 text-info-foreground');
   }
   if (t.includes('poblacional') || t.includes('impacto')) {
-    return cn(base, 'bg-success-muted/60 text-success');
+    return cn(base, 'bg-success-muted/60 text-success-foreground');
   }
   return cn(base, 'bg-surface-elevated text-foreground-muted');
+}
+
+/** "SOCIO ECONOMICO" → "Socioeconómico": el catálogo llega sin tildes. */
+export function etiquetaTipificacion(tipificacion: string): string {
+  const t = tipificacion.toLowerCase();
+  if (t.includes('socio')) return 'Socioeconómico';
+  if (t.includes('poblacional') || t.includes('impacto')) return 'Impacto poblacional';
+  return tipificacion.charAt(0).toUpperCase() + tipificacion.slice(1).toLowerCase();
 }
 
 export interface TablaFuentesProps {
@@ -81,7 +89,7 @@ export function TablaFuentes({ data, isLoading, onPreview }: TablaFuentesProps) 
               >
                 <td className="px-3 py-2.5 align-top">
                   <span className={badgeTipificacion(f.tipificacion)}>
-                    {f.tipificacion}
+                    {etiquetaTipificacion(f.tipificacion)}
                   </span>
                 </td>
                 <td className="px-3 py-2.5 align-top font-medium text-foreground">

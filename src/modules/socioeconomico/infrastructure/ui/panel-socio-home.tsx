@@ -549,8 +549,8 @@ function KpiBlock({
       <p
         className={cn(
           'mt-1 text-xl font-semibold tracking-tight',
-          tone === 'danger' && 'text-danger',
-          tone === 'success' && 'text-success',
+          tone === 'danger' && 'text-danger-foreground',
+          tone === 'success' && 'text-success-foreground',
           tone === 'neutral' && 'text-foreground',
         )}
       >

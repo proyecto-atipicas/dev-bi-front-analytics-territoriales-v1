@@ -64,19 +64,25 @@ export function BarraFiltrosGlobales({
 
   const visibles =
     1 + (mostrarDepto ? 1 : 0) + (mostrarMuni ? 1 : 0) + (!ocultarPartido ? 1 : 0);
+  // La corporación tiene los nombres más largos ("Presidencia, primera
+  // vuelta 2022"): recibe más ancho para no cortarse. Con cuatro filtros la
+  // fila única sólo cabe desde xl; antes se reparten en 2×2.
   const gridClass =
     visibles === 4
-      ? 'grid flex-1 grid-cols-2 gap-2 lg:grid-cols-4'
+      ? 'grid flex-1 grid-cols-2 gap-2 xl:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))]'
       : visibles === 3
-        ? 'grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3'
+        ? 'grid flex-1 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,1fr))]'
         : 'grid flex-1 grid-cols-1 gap-2 sm:grid-cols-2 xl:max-w-3xl';
 
   return (
     <div className="px-4 pb-3 sm:px-6 lg:px-8" role="search" aria-label="Filtros de la vista">
       <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center">
         <div className={gridClass}>
+          {/* En móvil (2 columnas) corporación y partido ocupan la fila
+              completa: sus nombres son los más largos. */}
           <SelectFiltro
             label="Corporación"
+            className={visibles === 4 ? 'col-span-2 sm:col-span-1' : undefined}
             value={filtros.codigoCorporacion}
             loading={loadingCorp}
             options={(corporaciones ?? []).map((c) => ({
@@ -119,8 +125,11 @@ export function BarraFiltrosGlobales({
           {!ocultarPartido && (
             <SelectFiltro
               label={ocultarTerritorio ? 'Organización política' : 'Partido'}
+              className={visibles === 4 ? 'col-span-2 sm:col-span-1' : undefined}
               value={filtros.codigoPartido}
-              loading={loadingPart}
+              loading={loadingPart && !!filtros.codigoCorporacion}
+              disabled={!filtros.codigoCorporacion}
+              placeholder={filtros.codigoCorporacion ? 'Todos' : 'Elija una corporación'}
               options={(partidos ?? []).map((p) => ({
                 value: p.codigo,
                 label: p.nombre,
@@ -133,7 +142,7 @@ export function BarraFiltrosGlobales({
           <button
             type="button"
             onClick={limpiar}
-            className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 self-end rounded-lg px-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger-muted/50 hover:text-danger lg:self-auto"
+            className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 self-end rounded-lg px-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger-muted/50 hover:text-danger-foreground lg:self-auto"
             aria-label={`Quitar ${activos} ${activos === 1 ? 'filtro' : 'filtros'}`}
           >
             <X size={15} />

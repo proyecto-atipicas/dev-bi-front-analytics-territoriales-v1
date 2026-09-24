@@ -15,6 +15,7 @@ import { cn } from '@/shared/ui/utils/cn';
 import { formatearTerritorio } from '@/shared/ui/utils/formatear-territorio';
 import { Building, Globe2, MapPin, Target, Trophy } from 'lucide-react';
 import { useMemo } from 'react';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 
@@ -317,9 +318,9 @@ function ListaParticipacion({
               <tr key={f.id} className="transition-colors hover:bg-surface-elevated/50">
                 <td className="px-3 py-2 num-tabular text-foreground-subtle">{idx + 1}</td>
                 {/* max-w-0 + w-full: la columna toma el ancho sobrante y el
-                    nombre se trunca, sin desbordar la tarjeta. */}
+                    nombre ocupa hasta dos líneas, sin desbordar la tarjeta. */}
                 <td className="w-full max-w-0 px-3 py-2 font-medium text-foreground">
-                  <span className="block truncate" title={f.nombre}>
+                  <span className="line-clamp-2" title={f.nombre}>
                     {f.nombre}
                   </span>
                 </td>
@@ -327,7 +328,7 @@ function ListaParticipacion({
                   {fmt.format(f.votos)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 text-right num-tabular text-foreground-muted">
-                  {f.pct.toFixed(2)}%
+                  {formatearPorcentaje(f.pct, 2)}
                 </td>
                 <td className="hidden px-3 py-2 sm:table-cell">
                   <div
@@ -356,7 +357,7 @@ type Tono = 'brand' | 'info';
 
 const TONO_CLASSES: Record<Tono, { stroke: string; pill: string }> = {
   brand: { stroke: 'text-brand', pill: 'bg-brand-muted text-brand' },
-  info: { stroke: 'text-info', pill: 'bg-info-muted text-info' },
+  info: { stroke: 'text-info', pill: 'bg-info-muted text-info-foreground' },
 };
 
 interface ParticipacionRadialProps {
@@ -416,7 +417,7 @@ function ParticipacionRadial({
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="num-tabular text-[11px] font-bold tracking-tight text-foreground">
-            {pct >= 10 ? pct.toFixed(1) : pct.toFixed(2)}%
+            {formatearPorcentaje(pct, pct >= 10 ? 1 : 2)}
           </span>
         </div>
       </div>

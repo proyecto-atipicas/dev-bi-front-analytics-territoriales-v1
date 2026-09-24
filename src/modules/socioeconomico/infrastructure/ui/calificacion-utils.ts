@@ -29,30 +29,32 @@ const NEUTRO: ConfigNivelRiesgo = {
 
 // Paleta alineada con el brandbook: red/yellow para alarma; navy/sky para info; teal para ok.
 const TABLA: Record<string, Omit<ConfigNivelRiesgo, 'label'>> = {
+  // Cada nivel necesita un badge distinguible: antes "alto" y "medio"
+  // compartían el mismo amarillo y sólo el texto los separaba.
   extremo: {
     color: 'rgb(179 33 24)',     // brandbook red #b32118
     colorDark: 'rgb(232 95 84)', // versión cálida para oscuro
-    badgeClass: 'bg-danger-muted text-danger',
+    badgeClass: 'bg-danger text-brand-foreground',
   },
   alto: {
     color: 'rgb(217 102 30)',    // naranja terracota coordinado con la marca
     colorDark: 'rgb(245 158 70)',
-    badgeClass: 'bg-warning-muted text-warning',
+    badgeClass: 'bg-danger-muted text-danger-foreground',
   },
   medio: {
     color: 'rgb(239 199 47)',    // brandbook yellow #efc72f
     colorDark: 'rgb(252 211 77)',
-    badgeClass: 'bg-warning-muted text-warning',
+    badgeClass: 'bg-warning-muted text-warning-foreground',
   },
   bajo: {
     color: 'rgb(20 160 133)',    // teal complementario
     colorDark: 'rgb(52 211 153)',
-    badgeClass: 'bg-success-muted text-success',
+    badgeClass: 'bg-success-muted text-success-foreground',
   },
   normal: {
     color: 'rgb(129 183 230)',   // brandbook sky #81b7e6
     colorDark: 'rgb(129 183 230)',
-    badgeClass: 'bg-info-muted text-info',
+    badgeClass: 'bg-info-muted text-info-foreground',
   },
 };
 
@@ -85,7 +87,7 @@ function capitalize(s: string): string {
 /** Clases para un badge de nivel de riesgo con la paleta del sistema. */
 export function badgeNivelRiesgoClass(nivelRiesgo: string | null): string {
   return cn(
-    'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+    'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold',
     configNivelRiesgo(nivelRiesgo).badgeClass,
   );
 }

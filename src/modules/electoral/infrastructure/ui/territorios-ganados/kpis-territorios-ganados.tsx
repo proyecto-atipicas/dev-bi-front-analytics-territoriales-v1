@@ -6,11 +6,16 @@ import { cn } from '@/shared/ui/utils/cn';
 import {
   Activity,
   Award,
-  MinusCircle,
+  MapPin,
   TrendingUp,
   Vote,
 } from 'lucide-react';
+import {
+  formatearNombrePersona,
+  formatearTerritorio,
+} from '@/shared/ui/utils/formatear-territorio';
 import type { LucideIcon } from 'lucide-react';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 
@@ -21,8 +26,12 @@ export interface KpisTerritoriosGanadosProps {
 export function KpisTerritoriosGanados({ resultado }: KpisTerritoriosGanadosProps) {
   const etiquetaTerritorios = resultado.nivel === 'departamento' ? 'Departamentos' : 'Municipios';
 
-  // Brecha total = total votos elección − votos del seleccionado en el ámbito.
-  const diferenciaTotal = Math.max(0, resultado.totalVotosEleccion - resultado.votosSeleccionado);
+  // Territorio con mayor respaldo relativo: dice dónde es más fuerte el
+  // candidato, algo que el total de votos por sí solo no muestra.
+  const bastion = resultado.territorios.reduce<(typeof resultado.territorios)[number] | null>(
+    (mejor, t) => (!mejor || t.participacionPct > mejor.participacionPct ? t : mejor),
+    null,
+  );
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -36,13 +45,13 @@ export function KpisTerritoriosGanados({ resultado }: KpisTerritoriosGanadosProp
         icon={TrendingUp}
         etiqueta="Votos del seleccionado"
         valor={fmt.format(resultado.votosSeleccionado)}
-        descripcion={resultado.nombre}
+        descripcion={formatearNombrePersona(resultado.nombre)}
         acento
       />
       <KpiCard
         icon={Activity}
         etiqueta="Participación"
-        valor={`${resultado.participacionPct.toFixed(2)}%`}
+        valor={`${formatearPorcentaje(resultado.participacionPct, 2)}`}
         descripcion="Sobre el total de la elección"
       />
       <KpiCard
@@ -52,10 +61,14 @@ export function KpisTerritoriosGanados({ resultado }: KpisTerritoriosGanadosProp
         descripcion="Donde fue el más votado"
       />
       <KpiCard
-        icon={MinusCircle}
-        etiqueta="Brecha total"
-        valor={fmt.format(diferenciaTotal)}
-        descripcion="Votos restantes en el ámbito"
+        icon={MapPin}
+        etiqueta="Mayor respaldo"
+        valor={bastion ? `${formatearPorcentaje(bastion.participacionPct, 2)}` : '—'}
+        descripcion={
+          bastion
+            ? `${formatearTerritorio(bastion.nombre)}, donde obtuvo su mejor porcentaje`
+            : 'No fue el más votado en ningún territorio'
+        }
       />
     </div>
   );

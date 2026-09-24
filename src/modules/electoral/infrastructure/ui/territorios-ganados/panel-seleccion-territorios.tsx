@@ -13,6 +13,7 @@ import {
   SeleccionTerritoriosGanados,
   useFiltrosTerritoriosGanados,
 } from './filtros-territorios-ganados-store';
+import { formatearNombrePersona } from '@/shared/ui/utils/formatear-territorio';
 
 /**
  * Codificación del `<option value>` para candidatos: `codigo_candidato` se
@@ -152,7 +153,7 @@ function SelectorCandidato({
 
   const opciones = (candidatos ?? []).map((c) => ({
     value: encodeCandidato(c.codigo, c.codigoPartido),
-    label: c.nombre,
+    label: formatearNombrePersona(c.nombre),
   }));
 
   const valueEncoded = value ? encodeCandidato(value.codigo, value.codigoPartido) : null;

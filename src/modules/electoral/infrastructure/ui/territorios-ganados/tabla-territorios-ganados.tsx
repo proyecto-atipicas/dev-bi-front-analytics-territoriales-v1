@@ -8,9 +8,15 @@ import type {
 import { cn } from '@/shared/ui/utils/cn';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { formatearTerritorio } from '@/shared/ui/utils/formatear-territorio';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 const PAGE_SIZE = 15;
+// Si las filas apenas superan una página (p. ej. 11 de 10), se muestran
+// todas: una segunda página con una o dos filas sólo obliga a hacer clic.
+const porPaginaPara = (total: number) =>
+  total <= Math.ceil(PAGE_SIZE * 1.5) ? Math.max(total, 1) : PAGE_SIZE;
 
 export interface TablaTerritoriosGanadosProps {
   territorios: TerritorioGanado[];
@@ -20,7 +26,8 @@ export interface TablaTerritoriosGanadosProps {
 export function TablaTerritoriosGanados({ territorios, nivel }: TablaTerritoriosGanadosProps) {
   const esMunicipal = nivel === 'municipio';
   const encabezadoTerritorio = esMunicipal ? 'Municipio' : 'Departamento';
-  const totalPaginas = Math.max(1, Math.ceil(territorios.length / PAGE_SIZE));
+  const porPagina = porPaginaPara(territorios.length);
+  const totalPaginas = Math.max(1, Math.ceil(territorios.length / porPagina));
   const [pagina, setPagina] = useState(1);
 
   // Sólo consultamos el catálogo cuando la vista municipal lo necesita.
@@ -55,8 +62,8 @@ export function TablaTerritoriosGanados({ territorios, nivel }: TablaTerritorios
   }, [territoriosOrdenados, nivel]);
 
   const paginaActual = Math.min(pagina, totalPaginas);
-  const inicio = (paginaActual - 1) * PAGE_SIZE;
-  const fin = Math.min(inicio + PAGE_SIZE, territoriosOrdenados.length);
+  const inicio = (paginaActual - 1) * porPagina;
+  const fin = Math.min(inicio + porPagina, territoriosOrdenados.length);
   const filas = useMemo(
     () => territoriosOrdenados.slice(inicio, fin),
     [territoriosOrdenados, inicio, fin],
@@ -129,18 +136,18 @@ function FilaTerritorio({
       <td className="px-4 py-2.5 font-medium text-foreground">
         <span
           className="block max-w-[10rem] truncate sm:max-w-[14rem] lg:max-w-[18rem]"
-          title={t.nombre}
+          title={formatearTerritorio(t.nombre)}
         >
-          {t.nombre}
+          {formatearTerritorio(t.nombre)}
         </span>
       </td>
       {esMunicipal && (
         <td className="px-3 py-2.5 text-foreground-muted">
           <span
             className="block max-w-[8rem] truncate sm:max-w-[12rem] lg:max-w-[16rem]"
-            title={nombreDepartamento ?? t.codigoDepartamento}
+            title={nombreDepartamento ? formatearTerritorio(nombreDepartamento) : t.codigoDepartamento}
           >
-            {nombreDepartamento ?? t.codigoDepartamento}
+            {nombreDepartamento ? formatearTerritorio(nombreDepartamento) : t.codigoDepartamento}
           </span>
         </td>
       )}
@@ -151,7 +158,7 @@ function FilaTerritorio({
         {fmt.format(t.votosSeleccionado)}
       </td>
       <td className="hidden px-3 py-2.5 text-right text-foreground-muted num-tabular md:table-cell">
-        {t.participacionPct.toFixed(2)}%
+        {formatearPorcentaje(t.participacionPct, 2)}
       </td>
       <td className="px-3 py-2.5 text-right text-foreground-muted num-tabular">
         {fmt.format(t.diferencia)}

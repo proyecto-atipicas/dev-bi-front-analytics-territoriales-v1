@@ -16,6 +16,8 @@ import {
   keyCandidatoEstadistico,
   useFiltrosEstadistico,
 } from './filtros-estadistico-store';
+import { formatearNombrePersona } from '@/shared/ui/utils/formatear-territorio';
+import { formatearCorporacion } from '../corporacion-utils';
 
 const fmt = new Intl.NumberFormat('es-CO');
 const CANDIDATOS_POR_PAGINA = 5;
@@ -25,7 +27,11 @@ export function PanelSeleccionEstadistico() {
   const { data: corporaciones, isLoading: loadingCorp } = useCorporaciones();
 
   const opcionesCorp = useMemo(
-    () => (corporaciones ?? []).map((c) => ({ value: c.codigo, label: c.nombre })),
+    () =>
+      (corporaciones ?? []).map((c) => ({
+        value: c.codigo,
+        label: formatearCorporacion(c.nombre).etiqueta,
+      })),
     [corporaciones],
   );
 
@@ -155,7 +161,7 @@ function ListaCandidatos({ corp }: { corp: string }) {
     <div className="mt-4 space-y-2">
       <div className="flex items-center justify-between text-xs font-medium text-foreground-muted">
         <span>Candidatos</span>
-        <span className="text-foreground-subtle">
+        <span>
           {seleccionDeEstaCorp} seleccionado{seleccionDeEstaCorp === 1 ? '' : 's'}
         </span>
       </div>
@@ -242,8 +248,8 @@ function FilaCandidato({
         {checked && <Check size={11} />}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium text-foreground" title={candidato.nombreCandidato}>
-          {candidato.nombreCandidato}
+        <span className="block truncate text-sm font-medium text-foreground" title={formatearNombrePersona(candidato.nombreCandidato)}>
+          {formatearNombrePersona(candidato.nombreCandidato)}
         </span>
         {candidato.nombrePartido && (
           <span className="block truncate text-[11px] text-foreground-muted" title={candidato.nombrePartido}>

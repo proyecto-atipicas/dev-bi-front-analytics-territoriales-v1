@@ -43,18 +43,22 @@ const config: Config = {
         success: {
           DEFAULT: 'rgb(var(--success) / <alpha-value>)',
           muted: 'rgb(var(--success-muted) / <alpha-value>)',
+          foreground: 'rgb(var(--success-fg) / <alpha-value>)',
         },
         danger: {
           DEFAULT: 'rgb(var(--danger) / <alpha-value>)',
           muted: 'rgb(var(--danger-muted) / <alpha-value>)',
+          foreground: 'rgb(var(--danger-fg) / <alpha-value>)',
         },
         warning: {
           DEFAULT: 'rgb(var(--warning) / <alpha-value>)',
           muted: 'rgb(var(--warning-muted) / <alpha-value>)',
+          foreground: 'rgb(var(--warning-fg) / <alpha-value>)',
         },
         info: {
           DEFAULT: 'rgb(var(--info) / <alpha-value>)',
           muted: 'rgb(var(--info-muted) / <alpha-value>)',
+          foreground: 'rgb(var(--info-fg) / <alpha-value>)',
         },
       },
       boxShadow: {

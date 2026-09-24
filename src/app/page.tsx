@@ -1,7 +1,15 @@
 'use client';
 
-import { useRankingPartidos, useResumenElectoral } from '@/modules/electoral/application/hooks';
-import { MapaColombia } from '@/modules/electoral/infrastructure/ui/mapa-colombia/mapa-colombia';
+import {
+  useRankingPartidos,
+  useResumenElectoral,
+  useResumenElectoralFiltro,
+} from '@/modules/electoral/application/hooks';
+import { leerVotos } from '@/modules/electoral/infrastructure/ui/lectura-votos';
+import {
+  MapaColombia,
+  useDescripcionMapa,
+} from '@/modules/electoral/infrastructure/ui/mapa-colombia/mapa-colombia';
 import { SelectorCorporacion } from '@/modules/electoral/infrastructure/ui/selector-corporacion';
 import { TablaRankingPartidos } from '@/modules/electoral/infrastructure/ui/tabla-ranking-partidos';
 import { TarjetaEleccionActiva } from '@/modules/electoral/infrastructure/ui/tarjeta-eleccion-activa';
@@ -14,6 +22,7 @@ import { InsightsPanel, type Insight } from '@/shared/ui/components/insights-pan
 import { SectionHeading } from '@/shared/ui/components/section-heading';
 import { Map as MapIcon, TrendingUp, Trophy, Users } from 'lucide-react';
 import { useMemo } from 'react';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 const fmtPct = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 1 });
@@ -35,48 +44,73 @@ export default function HomePage() {
 }
 
 function HomeContent() {
-  const { data: resumen } = useResumenElectoral();
-  const { data: partidos } = useRankingPartidos(LIMITE_PARTIDOS);
+  const descripcionMapa = useDescripcionMapa();
+  const { data: resumen, isPlaceholderData: resumenPrevio } = useResumenElectoral();
+  const { data: partidos, isPlaceholderData: partidosPrevios } =
+    useRankingPartidos(LIMITE_PARTIDOS);
+  const codigoCorporacion = useFiltrosGlobales((s) => s.codigoCorporacion);
+  const codigoDepartamento = useFiltrosGlobales((s) => s.codigoDepartamento);
+  const codigoMunicipio = useFiltrosGlobales((s) => s.codigoMunicipio);
   const codigoPartido = useFiltrosGlobales((s) => s.codigoPartido);
+  // Total del ámbito sin el filtro de partido: da el peso del partido filtrado.
+  const { data: totalAmbito } = useResumenElectoralFiltro(
+    { codigoCorporacion, codigoDepartamento, codigoMunicipio, codigoPartido: null },
+    { enabled: !!codigoPartido },
+  );
 
   const insights = useMemo<Insight[]>(() => {
     if (!resumen) return [];
+    const plural = (n: number, uno: string, varios: string) =>
+      `${fmt.format(n)} ${n === 1 ? uno : varios}`;
     const list: Insight[] = [];
     list.push({
       id: 'cobertura',
       tone: 'info',
       title: 'Cobertura territorial',
-      description: `Datos disponibles para ${fmt.format(resumen.totalDepartamentos)} departamentos y ${fmt.format(resumen.totalMunicipios)} municipios.`,
+      description: `Datos disponibles para ${plural(resumen.totalDepartamentos, 'departamento', 'departamentos')} y ${plural(resumen.totalMunicipios, 'municipio', 'municipios')}.`,
     });
-    if (resumen.totalCandidatos > 0) {
-      const promedioVotos = resumen.totalVotos / Math.max(1, resumen.totalCandidatos);
-      list.push({
-        id: 'votos-candidato',
-        tone: 'positive',
-        title: 'Promedio votos por candidato',
-        description: `Cada candidato recibe en promedio ${fmt.format(Math.round(promedioVotos))} votos según los filtros activos.`,
-      });
+
+    if (codigoPartido) {
+      // Con un partido filtrado su "participación" en la tabla sería siempre
+      // 100 %: se compara contra el total del ámbito sin ese filtro.
+      if (totalAmbito && totalAmbito.totalVotos > 0) {
+        list.push({
+          id: 'peso-partido',
+          tone: 'info',
+          title: 'Peso en la elección',
+          description: `El partido reúne el ${formatearPorcentaje((resumen.totalVotos / totalAmbito.totalVotos) * 100, 1)} de los votos del ámbito: ${fmt.format(resumen.totalVotos)} de ${fmt.format(totalAmbito.totalVotos)}.`,
+        });
+      }
+      if (resumen.totalPuestos > 0) {
+        list.push({
+          id: 'votos-puesto',
+          tone: 'info',
+          title: 'Votos por puesto de votación',
+          description: `Cada puesto registra en promedio ${fmt.format(Math.round(resumen.totalVotos / resumen.totalPuestos))} votos en ${plural(resumen.totalPuestos, 'puesto', 'puestos')}.`,
+        });
+      }
+      return list;
     }
-    // Con un partido filtrado su "participación" sería siempre 100 %: en ese
-    // caso se lee la densidad de votación por puesto, que sí aporta.
-    const lider = partidos?.[0];
-    if (!codigoPartido && lider && resumen.totalVotos > 0) {
+
+    const lectura = partidos ? leerVotos(partidos, resumen.totalVotos) : null;
+    if (lectura?.lider && resumen.totalVotos > 0) {
       list.push({
         id: 'partido-lider',
         tone: 'info',
         title: 'Partido con más votos',
-        description: `${lider.nombrePartido} concentra el ${fmtPct.format((lider.totalVotos / resumen.totalVotos) * 100)} % de la votación, con ${fmt.format(lider.totalVotos)} votos.`,
+        description: `${lectura.lider.nombrePartido} concentra el ${formatearPorcentaje((lectura.lider.totalVotos / resumen.totalVotos) * 100, 1)} de la votación, con ${fmt.format(lectura.lider.totalVotos)} votos.`,
       });
-    } else if (resumen.totalPuestos > 0) {
+    }
+    if (lectura?.segundo && lectura.ventajaPuntos !== null && lectura.ventajaVotos !== null) {
       list.push({
-        id: 'votos-puesto',
-        tone: 'info',
-        title: 'Votos por puesto de votación',
-        description: `Cada puesto registra en promedio ${fmt.format(Math.round(resumen.totalVotos / resumen.totalPuestos))} votos en ${fmt.format(resumen.totalPuestos)} puestos.`,
+        id: 'ventaja',
+        tone: 'positive',
+        title: 'Ventaja sobre el segundo',
+        description: `Supera a ${lectura.segundo.nombrePartido} por ${fmtPct.format(lectura.ventajaPuntos)} puntos: ${fmt.format(lectura.ventajaVotos)} votos de diferencia.`,
       });
     }
     return list;
-  }, [resumen, partidos, codigoPartido]);
+  }, [resumen, partidos, codigoPartido, totalAmbito]);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -85,7 +119,7 @@ function HomeContent() {
           <Card className="flex flex-col xl:col-span-8">
             <CardHeader
               title="Mapa de votación"
-              description="Toque un departamento para ver sus municipios"
+              description={descripcionMapa}
               icon={MapIcon}
             />
             <CardBody padding="none" className="flex flex-1 flex-col">
@@ -118,7 +152,11 @@ function HomeContent() {
             </CardBody>
           </Card>
           <div className="xl:col-span-4">
-            <InsightsPanel insights={insights} className="h-full" />
+            <InsightsPanel
+              insights={insights}
+              cargando={resumenPrevio || partidosPrevios}
+              className="h-full"
+            />
           </div>
         </section>
       </div>

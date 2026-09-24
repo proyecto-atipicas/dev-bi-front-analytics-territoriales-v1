@@ -25,12 +25,17 @@ import { Card, CardBody, CardHeader } from '@/shared/ui/components/card';
 import { EmptyState } from '@/shared/ui/components/empty-state';
 import { Skeleton } from '@/shared/ui/components/skeleton';
 import {
+  formatearNombrePersona,
+  formatearTerritorio,
+} from '@/shared/ui/utils/formatear-territorio';
+import {
   BarChart3,
   ListChecks,
   Map as MapIcon,
   Table as TableIcon,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 
@@ -40,6 +45,24 @@ export default function ComparativoPage() {
   const setTipo = useFiltrosComparativo((s) => s.setTipo);
 
   const activo: ModoComparativo = modoVista === 'estadistico' ? 'estadistico' : tipo;
+
+  // Quien llega con una elección elegida en los filtros generales casi
+  // siempre quiere comparar dentro de ella: se precarga en ambos lados
+  // (sólo si están vacíos, para no pisar una selección previa).
+  const corporacionGlobal = useFiltrosGlobales((s) => s.codigoCorporacion);
+  useEffect(() => {
+    if (!corporacionGlobal) return;
+    const directo = useFiltrosComparativo.getState();
+    if (!directo.corpA && !directo.corpB) {
+      directo.setCorpA(corporacionGlobal);
+      directo.setCorpB(corporacionGlobal);
+    }
+    const estadistico = useFiltrosEstadistico.getState();
+    if (!estadistico.corpA && !estadistico.corpB) {
+      estadistico.setCorpA(corporacionGlobal);
+      estadistico.setCorpB(corporacionGlobal);
+    }
+  }, [corporacionGlobal]);
 
   const onSelect = (modo: ModoComparativo) => {
     if (modo === 'estadistico') {
@@ -101,7 +124,17 @@ function VistaDirecta() {
       : sonDistintos && !!selA?.codigoPartido && !!selB?.codigoPartido;
   const haySeleccionCompleta = !!(corpA && corpB && seleccionValida);
 
-  const { data: resultado, isLoading, isError } = useCompararTerritorial(filtro);
+  const { data: datos, isLoading, isError } = useCompararTerritorial(filtro);
+  // Los candidatos llegan en mayúsculas; se muestran como nombre propio.
+  // Los partidos conservan su nombre oficial.
+  const resultado = useMemo(() => {
+    if (!datos || tipo !== 'candidato') return datos;
+    return {
+      ...datos,
+      itemA: { ...datos.itemA, nombre: formatearNombrePersona(datos.itemA.nombre) },
+      itemB: { ...datos.itemB, nombre: formatearNombrePersona(datos.itemB.nombre) },
+    };
+  }, [datos, tipo]);
 
   const etiquetaTerritorios =
     resultado?.nivel === 'puesto'
@@ -126,11 +159,19 @@ function VistaDirecta() {
       {!haySeleccionCompleta ? (
         <Card>
           <CardBody>
-            <EmptyState
-              tone="info"
-              title="Configure el comparativo"
-              description="Seleccione la corporación y el ítem de cada lado. Puede combinar corporaciones distintas para comparar entre elecciones."
-            />
+            {corpA && corpB ? (
+              <EmptyState
+                tone="info"
+                title={`Elija los dos ${tipo === 'candidato' ? 'candidatos' : 'partidos'}`}
+                description="Seleccione uno en cada lado para ver dónde gana cada uno. Puede cambiar la corporación de un lado para comparar entre elecciones."
+              />
+            ) : (
+              <EmptyState
+                tone="info"
+                title="Configure el comparativo"
+                description="Seleccione la corporación y el ítem de cada lado. Puede combinar corporaciones distintas para comparar entre elecciones."
+              />
+            )}
           </CardBody>
         </Card>
       ) : isLoading ? (
@@ -229,7 +270,22 @@ function VistaEstadistico() {
   const seleccionados = useFiltrosEstadistico((s) => s.seleccionados);
 
   const filtro = useMemo(() => ({ candidatos: seleccionados }), [seleccionados]);
-  const { data: resultado, isLoading, isError } = useCompararEstadistico(filtro);
+  const { data: datos, isLoading, isError } = useCompararEstadistico(filtro);
+  const resultado = useMemo(
+    () =>
+      datos && {
+        ...datos,
+        candidatos: datos.candidatos.map((c) => ({
+          ...c,
+          nombre: formatearNombrePersona(c.nombre),
+        })),
+        departamentos: datos.departamentos.map((d) => ({
+          ...d,
+          nombre: formatearTerritorio(d.nombre),
+        })),
+      },
+    [datos],
+  );
 
   const ambasCorporaciones = !!(corpA && corpB);
   const suficientesCandidatos = seleccionados.length >= 2;
@@ -332,7 +388,7 @@ function ResumenCandidatos({ resultado }: { resultado: ComparativoEstadisticoRes
           </span>
           <span className="num-tabular text-xs text-foreground-muted">
             {fmt.format(c.totalVotos)}
-            <span className="ml-1 text-foreground-subtle">({c.participacionPct.toFixed(1)}%)</span>
+            <span className="ml-1 text-foreground-subtle">({formatearPorcentaje(c.participacionPct, 1)})</span>
           </span>
         </div>
       ))}

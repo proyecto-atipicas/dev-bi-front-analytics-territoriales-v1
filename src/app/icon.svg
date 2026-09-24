@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <clipPath id="franja"><rect x="17" y="46" width="30" height="4.5" rx="2.25"/></clipPath>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#313f69"/>
+  <g fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round">
+    <path d="M17 14v26h30"/>
+    <path d="M26 34V26"/>
+    <path d="M34 34V19"/>
+    <path d="M42 34v-9"/>
+  </g>
+  <g clip-path="url(#franja)">
+    <rect x="17" y="46" width="15" height="4.5" fill="#efc72f"/>
+    <rect x="32" y="46" width="7.5" height="4.5" fill="#81b7e6"/>
+    <rect x="39.5" y="46" width="7.5" height="4.5" fill="#b32118"/>
+  </g>
+</svg>

@@ -111,17 +111,25 @@ function FitBoundsToData({ features }: { features: Feature[] }) {
 
   useEffect(() => {
     if (!bounds) return;
-    const ajustar = () => map.fitBounds(bounds, { padding: [16, 16] });
+    const ajustar = () => map.fitBounds(bounds, { padding: [16, 16], animate: false });
     ajustar();
     // El contenedor puede crecer después del montaje (p. ej. al estirarse
     // para igualar la altura de un panel vecino que termina de cargar):
-    // Leaflet sólo escucha la ventana, así que se recalcula aquí.
+    // Leaflet sólo escucha la ventana, así que se recalcula aquí, una vez
+    // por frame aunque el observador dispare varias veces seguidas.
+    let frame = 0;
     const obs = new ResizeObserver(() => {
-      map.invalidateSize();
-      ajustar();
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        map.invalidateSize({ animate: false });
+        ajustar();
+      });
     });
     obs.observe(map.getContainer());
-    return () => obs.disconnect();
+    return () => {
+      cancelAnimationFrame(frame);
+      obs.disconnect();
+    };
   }, [bounds, map]);
   return null;
 }
@@ -267,7 +275,7 @@ export function MapaBaseInner({
 
   if (error) {
     return (
-      <div className="flex h-full min-h-[240px] items-center justify-center rounded-md border border-warning/30 bg-warning-muted/40 p-4 text-sm text-warning">
+      <div className="flex h-full min-h-[240px] items-center justify-center rounded-md border border-warning/30 bg-warning-muted/40 p-4 text-sm text-warning-foreground">
         <div>
           <strong>Mapa no disponible:</strong> {error}
           <p className="mt-1 text-xs opacity-80">
@@ -301,6 +309,12 @@ export function MapaBaseInner({
       keyboard={false}
       zoomControl={false}
       zoomSnap={0.25}
+      // Sin animación de zoom: Leaflet descarta cualquier fitBounds que llegue
+      // mientras anima, así que un reajuste por cambio de tamaño se perdía y
+      // Colombia quedaba diminuta. También evita el error `_leaflet_pos` al
+      // desmontar capas a mitad de animación.
+      zoomAnimation={false}
+      markerZoomAnimation={false}
     >
       {/* Lienzo gris de Esri (sin etiquetas): sin API key y con contraste
           bajo para que el coroplético sea lo único que "habla". CARTO pasó

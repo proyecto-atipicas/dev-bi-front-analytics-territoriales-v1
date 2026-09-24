@@ -30,10 +30,10 @@ interface TonoConfig {
 
 const TONOS: Record<TonoCorporacion, TonoConfig> = {
   brand:   { text: 'text-brand',   headerBg: 'bg-brand-muted',   headerBorder: 'border-brand/30' },
-  success: { text: 'text-success', headerBg: 'bg-success-muted', headerBorder: 'border-success/30' },
-  danger:  { text: 'text-danger',  headerBg: 'bg-danger-muted',  headerBorder: 'border-danger/30' },
-  warning: { text: 'text-warning', headerBg: 'bg-warning-muted', headerBorder: 'border-warning/30' },
-  info:    { text: 'text-info',    headerBg: 'bg-info-muted',    headerBorder: 'border-info/30' },
+  success: { text: 'text-success-foreground', headerBg: 'bg-success-muted', headerBorder: 'border-success/30' },
+  danger:  { text: 'text-danger-foreground',  headerBg: 'bg-danger-muted',  headerBorder: 'border-danger/30' },
+  warning: { text: 'text-warning-foreground', headerBg: 'bg-warning-muted', headerBorder: 'border-warning/30' },
+  info:    { text: 'text-info-foreground',    headerBg: 'bg-info-muted',    headerBorder: 'border-info/30' },
   neutral: { text: 'text-foreground-muted', headerBg: 'bg-surface-elevated', headerBorder: 'border-border-strong' },
 };
 

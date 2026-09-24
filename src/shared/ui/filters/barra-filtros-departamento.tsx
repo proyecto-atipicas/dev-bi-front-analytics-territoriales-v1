@@ -35,7 +35,7 @@ export function BarraFiltrosDepartamento() {
           <button
             type="button"
             onClick={() => setDepartamento(null)}
-            className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 self-start rounded-lg px-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger-muted/50 hover:text-danger sm:self-auto"
+            className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 self-start rounded-lg px-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger-muted/50 hover:text-danger-foreground sm:self-auto"
             aria-label="Quitar filtro de departamento"
           >
             <X size={15} />

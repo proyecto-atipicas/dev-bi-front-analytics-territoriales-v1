@@ -1,6 +1,10 @@
 'use client';
 
-import { MapaColombia } from '@/modules/electoral/infrastructure/ui/mapa-colombia/mapa-colombia';
+import { LecturaResultado } from '@/modules/electoral/infrastructure/ui/lectura-resultado';
+import {
+  MapaColombia,
+  useDescripcionMapa,
+} from '@/modules/electoral/infrastructure/ui/mapa-colombia/mapa-colombia';
 import { MatrizOrganizaciones } from '@/modules/electoral/infrastructure/ui/matriz-organizaciones';
 import { PanelTerritorialComportamiento } from '@/modules/electoral/infrastructure/ui/panel-territorial-comportamiento';
 import { ResumenEleccion } from '@/modules/electoral/infrastructure/ui/resumen-eleccion';
@@ -23,22 +27,28 @@ export default function ComportamientoElectoralPage() {
 }
 
 function ComportamientoContent() {
+  const descripcionMapa = useDescripcionMapa();
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Qué elección, en qué ámbito y sus cifras principales */}
       <ResumenEleccion />
 
+      {/* Quién ganó, por cuánto y dónde se concentra el voto */}
+      <LecturaResultado />
+
       {/* Mapa + Panel territorial adaptativo */}
-      <section className="grid gap-4 lg:grid-cols-2">
+      {/* Lado a lado sólo desde xl: en lg la tabla territorial quedaba en
+          ~330px y los nombres se cortaban ("Bogo…", "Antio…"). */}
+      <section className="grid gap-4 xl:grid-cols-2">
         <Card className="flex flex-col">
           <CardHeader
             title="Mapa de votación"
-            description="Toque un departamento para ver sus municipios"
+            description={descripcionMapa}
             icon={MapIcon}
           />
           <CardBody padding="none" className="flex flex-1 flex-col">
-            {/* En lg el mapa se estira hasta la altura del panel territorial. */}
-            <div className="h-[360px] w-full p-3 sm:h-[440px] lg:h-auto lg:min-h-[500px] lg:flex-1">
+            {/* En xl el mapa se estira hasta la altura del panel territorial. */}
+            <div className="h-[360px] w-full p-3 sm:h-[440px] xl:h-auto xl:min-h-[500px] xl:flex-1">
               <MapaColombia />
             </div>
           </CardBody>

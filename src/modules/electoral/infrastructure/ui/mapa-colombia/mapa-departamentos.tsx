@@ -46,7 +46,7 @@ export function MapaDepartamentos() {
   if (isLoading) return <Skeleton className="h-full min-h-[280px] w-full" />;
   if (isError) {
     return (
-      <div className="m-3 rounded-lg border border-danger/30 bg-danger-muted/40 p-3 text-xs font-medium text-danger">
+      <div className="m-3 rounded-lg border border-danger/30 bg-danger-muted/40 p-3 text-xs font-medium text-danger-foreground">
         Error al cargar el mapa departamental.
       </div>
     );

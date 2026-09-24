@@ -19,7 +19,11 @@ const fmt = new Intl.NumberFormat('es-CO');
 export function TarjetaEleccionActiva() {
   const codigoCorporacion = useFiltrosGlobales((s) => s.codigoCorporacion);
   const setCorporacion = useFiltrosGlobales((s) => s.setCorporacion);
-  const { data: resumen, isLoading } = useResumenElectoral();
+  const { data: datos, isLoading, isPlaceholderData } = useResumenElectoral();
+  // Con keepPreviousData la consulta devuelve las cifras de la elección o el
+  // ámbito anterior mientras llega la nueva (hasta varios segundos en las
+  // territoriales): mostrarlas bajo el nombre nuevo sería engañoso.
+  const resumen = isPlaceholderData ? undefined : datos;
   const { data: corporaciones } = useCorporaciones();
 
   const corporacion = corporaciones?.find((c) => c.codigo === codigoCorporacion);
@@ -70,9 +74,9 @@ export function TarjetaEleccionActiva() {
           <div key={label} className="flex items-center justify-center gap-2.5 px-3 py-3">
             <IconoCifra size={17} className="shrink-0 text-brand" aria-hidden />
             <div className="leading-tight">
-              <p className="font-display text-lg font-bold tabular-nums text-foreground">
-                {valor === undefined ? <Skeleton className="h-5 w-8" /> : fmt.format(valor)}
-              </p>
+              <div className="font-display text-lg font-bold tabular-nums text-foreground">
+                {valor === undefined ? <Skeleton className="my-1 h-5 w-8" /> : fmt.format(valor)}
+              </div>
               <p className="text-xs text-foreground-muted">{label}</p>
             </div>
           </div>

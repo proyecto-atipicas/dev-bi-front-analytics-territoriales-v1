@@ -60,9 +60,10 @@ export function CardHeader({
           />
         )}
         <div className="min-w-0">
+          {/* Hasta dos líneas: en móvil los títulos largos se cortaban. */}
           <h3
             className={cn(
-              'truncate font-semibold text-foreground',
+              'line-clamp-2 font-semibold text-foreground sm:line-clamp-1',
               dense ? 'text-sm' : 'text-[15px]',
             )}
           >

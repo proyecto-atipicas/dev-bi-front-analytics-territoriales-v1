@@ -51,7 +51,7 @@ export function FiltrosCard({
           <button
             type="button"
             onClick={onLimpiar}
-            className="inline-flex h-12 shrink-0 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger-muted/50 hover:text-danger"
+            className="inline-flex h-12 shrink-0 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger-muted/50 hover:text-danger-foreground"
             aria-label={`Quitar ${filtrosActivos} ${filtrosActivos === 1 ? 'filtro' : 'filtros'}`}
           >
             <X size={15} />

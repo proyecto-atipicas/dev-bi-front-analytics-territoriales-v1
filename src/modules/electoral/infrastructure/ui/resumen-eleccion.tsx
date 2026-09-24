@@ -20,7 +20,10 @@ const fmt = new Intl.NumberFormat('es-CO');
  */
 export function ResumenEleccion() {
   const filtros = useFiltrosGlobales();
-  const { data: resumen, isLoading } = useResumenElectoral();
+  const { data: datos, isLoading: cargandoPrimera, isPlaceholderData } = useResumenElectoral();
+  // Cifras de la combinación de filtros anterior: se muestran como carga.
+  const resumen = isPlaceholderData ? undefined : datos;
+  const isLoading = cargandoPrimera || isPlaceholderData;
   const { data: corporaciones } = useCorporaciones();
   const { data: departamentos } = useDepartamentos();
   const { data: municipios } = useMunicipios(filtros.codigoDepartamento);
@@ -52,7 +55,9 @@ export function ResumenEleccion() {
       aria-label="Elección analizada"
       className="overflow-hidden rounded-xl border border-border/80 bg-surface shadow-panel"
     >
-      <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)]">
+      {/* Dos columnas sólo desde xl: en lg el bloque navy quedaba en ~260px
+          y el total de votos se salía sobre las cifras vecinas. */}
+      <div className="grid xl:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)]">
         {/* Identidad de la elección + total de votos */}
         <div className="relative flex flex-col justify-between gap-5 bg-chrome p-5 text-chrome-foreground sm:p-6">
           <div>
@@ -82,7 +87,7 @@ export function ResumenEleccion() {
             {isLoading || !resumen ? (
               <Skeleton className="mt-1 h-10 w-48 bg-chrome-foreground/10 dark:bg-chrome-foreground/10" />
             ) : (
-              <p className="font-display mt-0.5 text-4xl font-extrabold tabular-nums leading-none sm:text-[44px]">
+              <p className="font-display mt-0.5 text-4xl font-extrabold tabular-nums leading-none sm:text-[44px] xl:text-[40px] 2xl:text-[44px]">
                 {fmt.format(resumen.totalVotos)}
               </p>
             )}

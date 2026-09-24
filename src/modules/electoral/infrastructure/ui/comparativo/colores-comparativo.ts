@@ -12,8 +12,8 @@ export const COLOR_A = {
 };
 
 export const COLOR_B = {
-  text: 'text-danger',
-  textStrong: 'text-danger',
+  text: 'text-danger-foreground',
+  textStrong: 'text-danger-foreground',
   bg: 'bg-danger-muted',
   border: 'border-danger/30',
   // Red brandbook (#b32118) + tinte rosado claro coordinado.

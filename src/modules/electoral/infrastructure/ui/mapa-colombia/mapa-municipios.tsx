@@ -126,7 +126,7 @@ export function MapaMunicipios() {
 
   if (geoError) {
     return (
-      <div className="m-3 rounded-lg border border-warning/30 bg-warning-muted/40 p-3 text-xs font-medium text-warning">
+      <div className="m-3 rounded-lg border border-warning/30 bg-warning-muted/40 p-3 text-xs font-medium text-warning-foreground">
         No se pudo cargar el mapa municipal: {geoError}
       </div>
     );
@@ -136,7 +136,7 @@ export function MapaMunicipios() {
 
   if (isError) {
     return (
-      <div className="m-3 rounded-lg border border-danger/30 bg-danger-muted/40 p-3 text-xs font-medium text-danger">
+      <div className="m-3 rounded-lg border border-danger/30 bg-danger-muted/40 p-3 text-xs font-medium text-danger-foreground">
         Error al cargar el mapa municipal.
       </div>
     );

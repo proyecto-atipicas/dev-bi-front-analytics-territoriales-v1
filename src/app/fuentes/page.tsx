@@ -7,7 +7,7 @@ import {
   useTipificacionesFuente,
 } from '@/modules/fuentes/application/hooks';
 import { PreviewPdfModal } from '@/modules/fuentes/infrastructure/ui/preview-pdf-modal';
-import { TablaFuentes } from '@/modules/fuentes/infrastructure/ui/tabla-fuentes';
+import { TablaFuentes, etiquetaTipificacion } from '@/modules/fuentes/infrastructure/ui/tabla-fuentes';
 import { Card, CardBody, CardHeader } from '@/shared/ui/components/card';
 import { FiltrosCard } from '@/shared/ui/components/filtros-card';
 import { SelectFiltro } from '@/shared/ui/components/select-filtro';
@@ -54,7 +54,7 @@ export default function FuentesPage() {
           label="Tipificación"
           value={tipificacion}
           loading={loadingTip}
-          options={(tipificaciones ?? []).map((t) => ({ value: t, label: t }))}
+          options={(tipificaciones ?? []).map((t) => ({ value: t, label: etiquetaTipificacion(t) }))}
           onChange={setTipificacion}
           placeholder="Todas"
         />

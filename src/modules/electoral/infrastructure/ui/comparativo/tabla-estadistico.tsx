@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { colorCandidato } from './colores-estadistico';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const fmt = new Intl.NumberFormat('es-CO');
 const PAGE_SIZE = 10;
@@ -365,7 +366,7 @@ function FilaDepartamento({
               {fmt.format(v)}
             </span>
             <span className="ml-1 text-[10px] text-foreground-subtle">
-              ({pct.toFixed(1)}%)
+              ({formatearPorcentaje(pct, 1)})
             </span>
           </td>
         );
@@ -374,7 +375,7 @@ function FilaDepartamento({
         {fmt.format(depto.diferencia)}
       </td>
       <td className="px-3 py-2.5 text-right text-foreground num-tabular">
-        {depto.ventajaPct.toFixed(1)}%
+        {formatearPorcentaje(depto.ventajaPct, 1)}
       </td>
     </tr>
   );

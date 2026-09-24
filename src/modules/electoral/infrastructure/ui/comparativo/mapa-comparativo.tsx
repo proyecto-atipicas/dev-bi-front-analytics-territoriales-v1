@@ -15,6 +15,7 @@ import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
 import { BotonVolverPais } from '../mapa-colombia/boton-volver-pais';
 import { COLOR_A, COLOR_B, COLOR_EMPATE, colorGanador } from './colores-comparativo';
+import { formatearPorcentaje } from '@/shared/ui/utils/formatear-porcentaje';
 
 const GEO_MUNI_URL = '/colombia-municipios.geojson';
 
@@ -81,7 +82,7 @@ function MapaDepartamentalComparativo({
             : 'Empate';
       m.set(
         divipola,
-        `Ganador: ${ganador}<br/>A: ${fmt.format(t.totalA)} · B: ${fmt.format(t.totalB)}<br/>Diferencia: ${t.diferenciaPct.toFixed(1)}%`,
+        `Ganador: ${ganador}<br/>A: ${fmt.format(t.totalA)} · B: ${fmt.format(t.totalB)}<br/>Diferencia: ${formatearPorcentaje(t.diferenciaPct, 1)}`,
       );
     }
     return m;
@@ -220,7 +221,7 @@ function MapaMunicipalComparativo({
             : 'Empate';
       m.set(
         ccnct,
-        `Ganador: ${ganador}<br/>A: ${fmt.format(t.totalA)} · B: ${fmt.format(t.totalB)}<br/>Diferencia: ${t.diferenciaPct.toFixed(1)}%`,
+        `Ganador: ${ganador}<br/>A: ${fmt.format(t.totalA)} · B: ${fmt.format(t.totalB)}<br/>Diferencia: ${formatearPorcentaje(t.diferenciaPct, 1)}`,
       );
     }
     return m;
@@ -255,7 +256,7 @@ function MapaMunicipalComparativo({
 
   if (geoError) {
     return (
-      <div className="m-3 rounded-lg border border-warning/30 bg-warning-muted/40 p-3 text-xs font-medium text-warning">
+      <div className="m-3 rounded-lg border border-warning/30 bg-warning-muted/40 p-3 text-xs font-medium text-warning-foreground">
         No se pudo cargar el mapa municipal: {geoError}
       </div>
     );
@@ -412,7 +413,7 @@ function MapaPuestoComparativo({
 
   if (geoError) {
     return (
-      <div className="m-3 rounded-lg border border-warning/30 bg-warning-muted/40 p-3 text-xs font-medium text-warning">
+      <div className="m-3 rounded-lg border border-warning/30 bg-warning-muted/40 p-3 text-xs font-medium text-warning-foreground">
         No se pudo cargar el mapa municipal: {geoError}
       </div>
     );

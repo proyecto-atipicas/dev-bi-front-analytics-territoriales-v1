@@ -81,7 +81,8 @@ export function Sidebar() {
           'fixed inset-y-0 left-0 z-50 flex h-screen flex-col bg-chrome text-chrome-foreground transition-[width,transform] duration-200',
           'lg:sticky lg:top-0 lg:z-30 lg:translate-x-0',
           collapsed ? 'lg:w-[72px]' : 'lg:w-[256px]',
-          'w-[272px]',
+          // En móvil convive con el botón de cerrar: 288px evita cortar la marca.
+          'w-[288px]',
           mobileOpen ? 'translate-x-0 shadow-elevated' : '-translate-x-full lg:translate-x-0',
         )}
         aria-label="Navegación principal"

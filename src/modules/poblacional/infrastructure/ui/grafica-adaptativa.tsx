@@ -1,6 +1,5 @@
 'use client';
 
-import { BarChart } from '@/shared/ui/components/bar-chart';
 import { DonutChart } from '@/shared/ui/components/donut-chart';
 import { EmptyState } from '@/shared/ui/components/empty-state';
 import { LineChart } from '@/shared/ui/components/line-chart';
@@ -15,6 +14,7 @@ import {
 import { useMemo } from 'react';
 import { useSeriePoblacional } from '../../application/hooks';
 import { SeriePoblacionalPunto } from '../../domain/entities';
+import { ListaBarrasCriterios } from './resultado-criterios';
 
 export interface GraficaAdaptativaProps {
   dimension: string;
@@ -52,7 +52,7 @@ function analizarSerie(serie: SeriePoblacionalPunto[]): AnalisisSerie {
     return {
       tipo: 'line',
       icon: LineIcon,
-      motivo: `${periodos.size} períodos detectados — serie temporal`,
+      motivo: `${periodos.size} mediciones en el tiempo`,
       periodos: periodos.size,
       criterios: criterios.size,
     };
@@ -65,24 +65,19 @@ function analizarSerie(serie: SeriePoblacionalPunto[]): AnalisisSerie {
       return {
         tipo: 'donut',
         icon: PieChart,
-        motivo: `Distribución porcentual (suma ≈ 100%)`,
+        motivo: 'Los valores suman cerca del 100 %',
         periodos: periodos.size,
         criterios: criterios.size,
       };
     }
-    return {
-      tipo: 'bar',
-      icon: BarChart3,
-      motivo: `${criterios.size} criterios — comparativo categórico`,
-      periodos: periodos.size,
-      criterios: criterios.size,
-    };
   }
 
+  // Una sola medición: una línea no tiene recorrido que mostrar, así que
+  // se comparan los criterios entre sí, ordenados de mayor a menor.
   return {
-    tipo: 'line',
-    icon: LineIcon,
-    motivo: 'Pocos puntos disponibles — vista por defecto',
+    tipo: 'bar',
+    icon: BarChart3,
+    motivo: `Una medición, ${criterios.size} ${criterios.size === 1 ? 'criterio' : 'criterios'} ordenados de mayor a menor`,
     periodos: periodos.size,
     criterios: criterios.size,
   };
@@ -120,8 +115,8 @@ export function GraficaAdaptativaPoblacional({
         <span
           className={cn(
             'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-semibold',
-            analisis.tipo === 'line' && 'bg-info-muted text-info',
-            analisis.tipo === 'bar' && 'bg-warning-muted text-warning',
+            analisis.tipo === 'line' && 'bg-info-muted text-info-foreground',
+            analisis.tipo === 'bar' && 'bg-warning-muted text-warning-foreground',
             analisis.tipo === 'donut' && 'bg-brand-muted text-brand',
           )}
         >
@@ -133,11 +128,13 @@ export function GraficaAdaptativaPoblacional({
         <span className="text-foreground-subtle">{analisis.motivo}</span>
       </div>
 
-      <div className="h-80">
-        {analisis.tipo === 'line' && <GraficaLinea serie={serie} />}
-        {analisis.tipo === 'bar' && <GraficaBarras serie={serie} referencia={referencia} />}
-        {analisis.tipo === 'donut' && <GraficaDonut serie={serie} />}
-      </div>
+      {analisis.tipo === 'line' && <GraficaLinea serie={serie} />}
+      {analisis.tipo === 'bar' && <GraficaBarras serie={serie} />}
+      {analisis.tipo === 'donut' && (
+        <div className="h-80">
+          <GraficaDonut serie={serie} />
+        </div>
+      )}
     </div>
   );
 }
@@ -157,27 +154,20 @@ function GraficaLinea({ serie }: { serie: SeriePoblacionalPunto[] }) {
   });
   const datasets = cats.slice(0, 6).map((c) => ({
     label: c,
-    data: labels.map((k) => map.get(c)?.get(k) ?? 0),
+    data: labels.map((k) => map.get(c)?.get(k) ?? null),
   }));
-  return <LineChart labels={labels} datasets={datasets} />;
+  return <LineChart labels={labels} datasets={datasets} claseAlto="h-72" />;
 }
 
-/** Una barra por criterio (suma de valores). */
-function GraficaBarras({
-  serie,
-  referencia,
-}: {
-  serie: SeriePoblacionalPunto[];
-  referencia: string;
-}) {
+/** Una barra por criterio (suma de valores), con el nombre completo. */
+function GraficaBarras({ serie }: { serie: SeriePoblacionalPunto[] }) {
   const agg = new Map<string, number>();
   serie.forEach((p) => {
-    const c = p.criterio ?? 'sin criterio';
+    const c = p.criterio ?? 'Sin criterio';
     agg.set(c, (agg.get(c) ?? 0) + p.valor);
   });
-  const labels = Array.from(agg.keys());
-  const data = labels.map((c) => agg.get(c) ?? 0);
-  return <BarChart labels={labels} data={data} label={referencia} />;
+  const puntos = Array.from(agg, ([criterio, valor]) => ({ criterio, valor }));
+  return <ListaBarrasCriterios puntos={puntos} />;
 }
 
 /** Donut: composición por criterio. */

@@ -16,12 +16,6 @@ function formatPeriodoCorto(anio: number | null, mes: number | null): string | n
   return mes ? `${anio}-${String(mes).padStart(2, '0')}` : String(anio);
 }
 
-const MAX_LABEL_LEN = 28;
-
-function truncateLabel(value: string): string {
-  if (value.length <= MAX_LABEL_LEN) return value;
-  return `${value.slice(0, MAX_LABEL_LEN - 1)}…`;
-}
 
 function compararPeriodoDesc(
   a: { anio: number | null; mes: number | null },
@@ -101,7 +95,8 @@ export function GraficaRadarPoblacional({ filtro }: GraficaRadarPoblacionalProps
     );
   }
 
-  const labels = puntos.map((r) => truncateLabel(r.criterio));
+  // El radar reparte las etiquetas largas en varias líneas.
+  const labels = puntos.map((r) => r.criterio);
   const datasets = [
     {
       label: filtro.referencia ?? 'Referencia',

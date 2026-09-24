@@ -273,7 +273,9 @@ export default function SocioeconomicoPage() {
       labels: periodos.map(String),
       datasets: grupos.slice(0, 8).map((c) => ({
         label: c,
-        data: periodos.map((a) => mapaValor.get(c)?.get(a) ?? 0),
+        // Un periodo sin dato es un hueco, no un cero: pintarlo como 0
+        // inventaba caídas que no existen.
+        data: periodos.map((a) => mapaValor.get(c)?.get(a) ?? null),
         observaciones: periodos.map((a) => mapaObs.get(c)?.get(a) ?? null),
       })),
       agrupador: (usaSeries ? 'serie' : 'dimension') as 'serie' | 'dimension',
@@ -490,13 +492,12 @@ export default function SocioeconomicoPage() {
             {loadingSerie ? (
               <Skeleton className="h-72 w-full" />
             ) : (
-              <div className="h-72 sm:h-80">
-                <LineChart
-                  labels={serieAgrupada.labels}
-                  datasets={serieAgrupada.datasets}
-                  formatearValor={fmtValorChart}
-                />
-              </div>
+              <LineChart
+                labels={serieAgrupada.labels}
+                datasets={serieAgrupada.datasets}
+                formatearValor={fmtValorChart}
+                claseAlto="h-72 sm:h-80"
+              />
             )}
           </CardBody>
         </Card>

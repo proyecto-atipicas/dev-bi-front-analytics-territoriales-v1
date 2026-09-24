@@ -87,10 +87,16 @@ export function BarChart({
     border: { color: p.grid },
   };
 
+  // En horizontal las etiquetas largas se reparten en líneas (Chart.js
+  // acepta arreglos) en lugar de recortarse con "…".
+  const etiquetas = horizontal
+    ? labels.map((l) => (l.length > 20 ? envolverTexto(l, 20).slice(0, 3) : l))
+    : labels;
+
   return (
     <Bar
       data={{
-        labels,
+        labels: etiquetas,
         datasets: [
           {
             label,
@@ -98,6 +104,7 @@ export function BarChart({
             backgroundColor: colors ?? p.brand,
             borderRadius: 6,
             borderSkipped: false,
+            maxBarThickness: 28,
           },
         ],
       }}

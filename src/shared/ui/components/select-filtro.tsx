@@ -2,7 +2,7 @@
 
 import { cn } from '@/shared/ui/utils/cn';
 import { ChevronDown } from 'lucide-react';
-import { ChangeEvent } from 'react';
+import { ChangeEvent, useMemo } from 'react';
 
 export interface SelectOption {
   value: string;
@@ -36,6 +36,12 @@ export function SelectFiltro({
 
   const activo = value !== null && value !== '';
   const bloqueado = disabled || loading;
+  // Las claves de React salen del value: si el catálogo trae valores
+  // repetidos, React no puede reconciliar la lista y deja opciones viejas.
+  const opciones = useMemo(() => {
+    const vistos = new Set<string>();
+    return options.filter((o) => !vistos.has(o.value) && vistos.add(o.value));
+  }, [options]);
 
   return (
     <label
@@ -68,7 +74,7 @@ export function SelectFiltro({
         )}
       >
         <option value="">{loading ? 'Cargando…' : placeholder}</option>
-        {options.map((opt) => (
+        {opciones.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>

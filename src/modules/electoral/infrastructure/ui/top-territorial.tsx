@@ -378,7 +378,7 @@ const TONO_CLASSES: Record<Tono, { stroke: string; bg: string; pill: string }> =
   info: {
     stroke: 'text-info',
     bg: 'bg-info',
-    pill: 'bg-info-muted text-info',
+    pill: 'bg-info-muted text-info-foreground',
   },
 };
 
